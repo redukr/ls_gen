@@ -23,6 +23,23 @@ AVAILABLE_MODELS = {
 
 selected_model = None
     
+from LS_gen.ai.tools.csv_loader import load_params
+from LS_gen.ai.tools.generator import generate_image
+
+def generate_ai_images(prompt, csv_path, model, count):
+    params = load_params(csv_path) if csv_path else [{}]
+
+    image_paths = []
+
+    for i in range(count):
+        pr = prompt.format(**params[i]) if params else prompt
+        img = generate_image(pr, model)
+
+        path = f"export/ai_{i}.png"
+        img.save(path)
+        image_paths.append(path)
+
+    return image_paths
 
 def select_folder():
     global save_folder
