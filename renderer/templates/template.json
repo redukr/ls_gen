@@ -1,0 +1,39 @@
+{
+  "card": {
+    "width_mm": 40,
+    "height_mm": 62,
+    "bleed_mm": 3
+  },
+
+  "art": {
+    "x": 3,
+    "y": 6,
+    "w": 34,
+    "h": 30
+  },
+
+  "title": {
+    "x": 3,
+    "y": 3,
+    "font": "LS_font.ttf",
+    "size": 5,
+    "color": "#FFFFFF"
+  },
+
+  "stats": {
+    "x": 3,
+    "y": 39,
+    "font": "LS_font.ttf",
+    "size": 4,
+    "color": "#FFFFFF"
+  },
+
+  "description": {
+    "x": 3,
+    "y": 45,
+    "w": 34,
+    "font": "LS_font.ttf",
+    "size": 3.5,
+    "color": "#FFFFFF"
+  }
+}

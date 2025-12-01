@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "width": 744,
+    "height": 1038,
+    "dpi": 300,
+    "grid": 25,
+    "snap": 4,
+    "background": "#1A1A1A"
+  },
+  "items": {
+    "artwork": {
+      "type": "image",
+      "pos": {"x": 112, "y": 150},
+      "size": {"w": 520, "h": 320},
+      "opacity": 1.0,
+      "z": 1,
+      "locked": false,
+      "bindings": {"relative": true, "anchor": {"x": 0.15, "y": 0.14}}
+    },
+    "title": {
+      "type": "text",
+      "text": "Назва картки",
+      "pos": {"x": 60, "y": 40},
+      "font": {"family": "Montserrat", "size": 32, "bold": true},
+      "color": "#FFFFFF",
+      "text_width": 520,
+      "z": 6,
+      "bindings": {"relative": true, "anchor": {"x": 0.08, "y": 0.04}}
+    },
+    "type": {
+      "type": "text",
+      "text": "UNIT",
+      "pos": {"x": 60, "y": 90},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#F7D56E",
+      "z": 6,
+      "bindings": {"relative": true, "anchor": {"x": 0.08, "y": 0.09}}
+    },
+    "description": {
+      "type": "text",
+      "text": "Опис здібностей, довгий текст...",
+      "pos": {"x": 60, "y": 520},
+      "font": {"family": "Montserrat", "size": 18},
+      "color": "#FFFFFF",
+      "text_width": 520,
+      "z": 6,
+      "bindings": {"relative": true, "anchor": {"x": 0.08, "y": 0.5}}
+    },
+    "cost": {
+      "type": "text",
+      "text": "0",
+      "pos": {"x": 620, "y": 34},
+      "font": {"family": "Montserrat", "size": 28, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "cost_type": {
+      "type": "text",
+      "text": "BF",
+      "pos": {"x": 620, "y": 74},
+      "font": {"family": "Montserrat", "size": 20},
+      "color": "#F7D56E",
+      "z": 6
+    },
+    "stat_atk": {
+      "type": "text",
+      "text": "ATK 0",
+      "pos": {"x": 80, "y": 740},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "stat_def": {
+      "type": "text",
+      "text": "DEF 0",
+      "pos": {"x": 80, "y": 780},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "stat_stb": {
+      "type": "text",
+      "text": "STB 0",
+      "pos": {"x": 80, "y": 820},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "stat_init": {
+      "type": "text",
+      "text": "INIT 0",
+      "pos": {"x": 80, "y": 860},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "stat_rng": {
+      "type": "text",
+      "text": "RNG 0",
+      "pos": {"x": 80, "y": 900},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    },
+    "stat_move": {
+      "type": "text",
+      "text": "MOVE 0",
+      "pos": {"x": 80, "y": 940},
+      "font": {"family": "Montserrat", "size": 20, "bold": true},
+      "color": "#FFFFFF",
+      "z": 6
+    }
+  }
+}
