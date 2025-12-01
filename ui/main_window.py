@@ -147,26 +147,32 @@ class MainWindow(QMainWindow):
         self.scene.set_art_pixmap(first_img)
         self.current_art = first_img
 
-
     def render_card(self):
-        # CardRenderer expects JSON-like data (from template)
-        renderer = CardRenderer(self.template)
+        if not hasattr(self, "current_art"):
+            QMessageBox.warning(self, "Error", "Apply AI image first")
+            return
 
-        # get rendered image (PIL)
-        img = renderer.render(self.template)
+        # minimal card data
+        card_data = {
+            "img": self.current_art,
+            "title": "Generated Unit",
+            "description": "AI-generated card",
+            "atk": 3,
+            "def": 2,
+            "stb": 1
+        }
+
+        renderer = CardRenderer(self.template)
+        img = renderer.render(card_data)
 
         os.makedirs("export", exist_ok=True)
         save_path = "export/rendered_card.png"
         img.save(save_path)
 
         QMessageBox.information(self, "Done", f"Card saved: {save_path}")
-        
-        card_data = {
-            "img": self.current_art
-        }
-        renderer = CardRenderer(self.template)
-        img = renderer.render(card_data)
 
+        # store for export
+        self.rendered_cards = [save_path]
 
     # --------------------------
     # TAB 3: EXPORT
@@ -181,13 +187,13 @@ class MainWindow(QMainWindow):
         self.tab_export.setLayout(layout)
 
     def export_pdf_deck(self):
-        if not hasattr(self, "generated_images"):
-            QMessageBox.warning(self, "Error", "Generate AI images first")
+        if not hasattr(self, "rendered_cards"):
+            QMessageBox.warning(self, "Error", "Render a card first")
             return
 
         os.makedirs("export", exist_ok=True)
 
         out = "export/deck.pdf"
-        export_pdf(self.generated_images, out)
+        export_pdf(self.rendered_cards, out)
 
         QMessageBox.information(self, "Done", f"PDF exported: {out}")

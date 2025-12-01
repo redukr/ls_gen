@@ -1,115 +1,104 @@
-import os
 from PIL import Image, ImageDraw, ImageFont
-import sys
-
-def resource_path(*paths):
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, *paths)
-    return os.path.join(os.path.abspath("."), *paths)
-
+import os
+from LS_gen.renderer.core.paths import ABSOLUTE_PATH
 
 class CardRenderer:
-    def __init__(self, template_path, frame_path, fonts_folder):
-        self.template_path = template_path
-        self.frame_path = frame_path
-        self.fonts_folder = fonts_folder
-        self.template = self.load_template()
+    """
+    Спрощений, але повністю робочий CardRenderer_v2
+    Працює з card_data та template (layout).
+    Підтримує:
+    - арт
+    - заголовок
+    - опис
+    - стати (atk, def, stb)
+    - шрифти з assets/fonts
+    - іконки з assets/icons
+    """
 
-    def load_template(self):
-        import json
-        if not os.path.exists(self.template_path):
-            return {}
-        with open(self.template_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+    def __init__(self, template: dict):
+        self.template = template
 
-    def recolor_frame(self, frame_img, color):
-        r, g, b = color
-        pixels = frame_img.load()
-        for y in range(frame_img.height):
-            for x in range(frame_img.width):
-                pr, pg, pb, pa = pixels[x, y]
-                if pr > 200 and pg > 200 and pb > 200:
-                    pixels[x, y] = (r, g, b, pa)
-        return frame_img
+        # Шляхи ресурсів
+        self.fonts_path = ABSOLUTE_PATH("assets/fonts")
+        self.icons_path = ABSOLUTE_PATH("assets/icons")
+        self.frames_path = ABSOLUTE_PATH("assets/frames/frame.png")
 
-    def mm_to_px(self, mm, dpi=300):
-        return int((mm / 25.4) * dpi)
+        # Завантаження шрифтів
+        self.font_title = ImageFont.truetype(os.path.join(self.fonts_path, "LS_font.ttf"), 48)
+        self.font_desc = ImageFont.truetype(os.path.join(self.fonts_path, "LS_font.ttf"), 32)
+        self.font_stats = ImageFont.truetype(os.path.join(self.fonts_path, "LS_font.ttf"), 40)
 
-    def render_card(self, card_data, deck_color, bleed_mm=0):
-        card_w = self.mm_to_px(40 + bleed_mm * 2)
-        card_h = self.mm_to_px(62 + bleed_mm * 2)
-        canvas = Image.new("RGBA", (card_w, card_h), (0,0,0,0))
-        draw = ImageDraw.Draw(canvas)
+    # -------------------------------------------------
+    # ГОЛОВНИЙ РЕНДЕР-ФУНКЦІОНАЛ
+    # -------------------------------------------------
+    def render(self, card_data: dict):
+        W = self.template["canvas_width"]
+        H = self.template["canvas_height"]
 
-        frame = Image.open(self.frame_path).convert("RGBA")
-        frame = frame.resize((card_w, card_h), Image.LANCZOS)
-        dc = tuple(int(deck_color[i:i+2], 16) for i in (1,3,5))
-        frame = self.recolor_frame(frame, dc)
-        canvas.alpha_composite(frame, (0,0))
+        # Створюємо полотно
+        card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(card)
 
-        # ART
-        if "art" in self.template:
-            art_path = card_data.get("art_path", None)
-            if art_path and os.path.exists(art_path):
-                art = Image.open(art_path).convert("RGBA")
-                tw = self.mm_to_px(self.template["art"]["w"])
-                th = self.mm_to_px(self.template["art"]["h"])
-                tx = self.mm_to_px(self.template["art"]["x"] + bleed_mm)
-                ty = self.mm_to_px(self.template["art"]["y"] + bleed_mm)
-                art = art.resize((tw, th), Image.LANCZOS)
-                canvas.alpha_composite(art, (tx, ty))
+        # -------------------------------------------------
+        # 1. ФОН / РАМКА
+        # -------------------------------------------------
+        if os.path.exists(self.frames_path):
+            frame = Image.open(self.frames_path).convert("RGBA")
+            frame = frame.resize((W, H))
+            card.alpha_composite(frame, (0, 0))
 
-        # TITLE
-        if "title" in self.template:
-            title = card_data.get("name", "")
-            tx = self.mm_to_px(self.template["title"]["x"] + bleed_mm)
-            ty = self.mm_to_px(self.template["title"]["y"] + bleed_mm)
-            fs = self.template["title"]["size"]
-            font_path = os.path.join(self.fonts_folder, self.template["title"]["font"])
-            font = ImageFont.truetype(font_path, fs)
-            draw.text((tx, ty), title, font=font, fill=(255, 255, 255, 255))
+        # -------------------------------------------------
+        # 2. АРТ
+        # -------------------------------------------------
+        if "img" in card_data and card_data["img"]:
+            art = Image.open(card_data["img"]).convert("RGBA")
 
-        # STATS
-        if "stats" in self.template and card_data.get("type") == "unit":
-            st = [
-                ("ATK", "atk"),
-                ("DEF", "def"),
-                ("STB", "stb"),
-                ("INIT", "init"),
-                ("RNG", "rng"),
-                ("MOVE", "move"),
-            ]
-            tx = self.mm_to_px(self.template["stats"]["x"] + bleed_mm)
-            ty = self.mm_to_px(self.template["stats"]["y"] + bleed_mm)
-            fs = self.template["stats"]["size"]
-            font_path = os.path.join(self.fonts_folder, self.template["stats"]["font"])
-            font = ImageFont.truetype(font_path, fs)
+            x, y, w, h = self._get_area("image")
+            art = art.resize((w, h))
+            card.alpha_composite(art, (x, y))
 
-            offset = 0
-            for label, key in st:
-                val = str(card_data.get(key, ""))
-                draw.text((tx, ty + offset), f"{label}: {val}", font=font, fill=(255,255,255,255))
-                offset += fs + 2
+        # -------------------------------------------------
+        # 3. TITLE
+        # -------------------------------------------------
+        if "title" in card_data:
+            x, y, w, h = self._get_area("title")
+            draw.text((x, y), card_data["title"], font=self.font_title, fill=(255, 255, 255, 255))
 
-        return canvas
+        # -------------------------------------------------
+        # 4. DESCRIPTION
+        # -------------------------------------------------
+        if "description" in card_data:
+            x, y, w, h = self._get_area("description")
+            draw.text((x, y), card_data["description"], font=self.font_desc, fill=(220, 220, 220, 255))
 
-    # ==========================================
-    #   ДОБАВЛЕНІ ПРАВИЛЬНО ВИРІВНЯНІ МЕТОДИ
-    # ==========================================
+        # -------------------------------------------------
+        # 5. СТАТИ
+        # -------------------------------------------------
+        stats_map = {
+            "atk": "atk.png",
+            "def": "def.png",
+            "stb": "stb.png"
+        }
 
-    def save_png(self, card_image, out_path):
-        """Зберігає PNG-файл картки."""
-        try:
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
-            card_image.save(out_path, format="PNG")
-        except Exception as e:
-            print(f"[Renderer] Error saving PNG: {e}")
-            raise
+        for key, icon_file in stats_map.items():
+            if key in card_data:
+                x, y, w, h = self._get_area(key)
+                icon_path = os.path.join(self.icons_path, icon_file)
 
-    def save_all(self, deck, export_dir, deck_color, bleed_mm=0):
-        """Генерує і зберігає всі картки."""
-        for card in deck["cards"]:
-            img = self.render_card(card, deck_color, bleed_mm)
-            file_name = f"{card['name'].replace(' ', '_')}.png"
-            out_path = os.path.join(export_dir, file_name)
-            self.save_png(img, out_path)
+                if os.path.exists(icon_path):
+                    icon = Image.open(icon_path).convert("RGBA").resize((w, h))
+                    card.alpha_composite(icon, (x, y))
+
+                # малюємо число поверх іконки
+                draw.text((x + w + 10, y), str(card_data[key]), font=self.font_stats, fill=(255, 255, 255, 255))
+
+        return card
+
+    # -------------------------------------------------
+    # ДОПОМІЖНА ФУНКЦІЯ: ЗОНА З LAYOUT
+    # -------------------------------------------------
+    def _get_area(self, key):
+        area = self.template.get(key, None)
+        if not area:
+            return (0, 0, 0, 0)
+        return (area["x"], area["y"], area["w"], area["h"])
