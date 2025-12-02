@@ -32,18 +32,26 @@ class GenerationWorker(QObject):
     finished = Signal(list)
     failed = Signal(str)
 
-    def __init__(self, prompt, csv_path, model, count, abort_event: threading.Event):
+    def __init__(self, prompt, csv_path, model, count, width, height, abort_event: threading.Event):
         super().__init__()
         self.prompt = prompt
         self.csv_path = csv_path
         self.model = model
         self.count = count
+        self.width = width
+        self.height = height
         self.abort_event = abort_event
 
     def run(self):
         try:
             images = generate_ai_images(
-                self.prompt, self.csv_path, self.model, self.count, self.abort_event.is_set
+                self.prompt,
+                self.csv_path,
+                self.model,
+                self.count,
+                self.width,
+                self.height,
+                self.abort_event.is_set
             )
             self.finished.emit(images)
         except Exception as e:
@@ -96,6 +104,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Count:"))
         layout.addWidget(self.count_edit)
 
+        # Dimensions
+        layout.addWidget(QLabel("Dimensions:"))
+        self.dimension_combo = QComboBox()
+        self.dimension_options = {
+            "440 × 692 px (200 DPI)": (440, 692),
+            "551 × 865 px (250 DPI)": (551, 865),
+            "661 × 1039 px (300 DPI)": (661, 1039),
+        }
+        self.dimension_combo.addItems(self.dimension_options.keys())
+        layout.addWidget(self.dimension_combo)
+
         # Model name
         layout.addWidget(QLabel("Model name:"))
         self.model_combo = QComboBox()
@@ -141,11 +160,24 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Count must be integer")
             return
 
+        width, height = self.dimension_options.get(
+            self.dimension_combo.currentText(),
+            (768, 1088)
+        )
+
         self.abort_event = threading.Event()
         self._set_generation_controls(enabled=False)
 
         self.worker_thread = QThread()
-        self.worker = GenerationWorker(prompt, self.csv_path, model, count, self.abort_event)
+        self.worker = GenerationWorker(
+            prompt,
+            self.csv_path,
+            model,
+            count,
+            width,
+            height,
+            self.abort_event
+        )
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.generation_finished)
