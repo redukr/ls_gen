@@ -46,6 +46,8 @@ def generate_ai_images(
     csv_path: str | None,
     model_name: str,
     count: int,
+    width: int,
+    height: int,
     is_aborted: Callable[[], bool] | None = None,
 ) -> List[str]:
     """
@@ -73,7 +75,7 @@ def generate_ai_images(
             row_params = {}
         pr = _personalize_prompt(prompt, row_params)
 
-        img = generate_image(pr, model_name)
+        img = generate_image(pr, model_name, width=width, height=height)
         path = f"export/ai_{i+1}.png"
         img.save(path)
         images.append(path)
