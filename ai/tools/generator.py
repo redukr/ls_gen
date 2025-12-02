@@ -116,7 +116,7 @@ def load_model(model_type, model_path):
 # ============================================================
 #                     GENERATE IMAGE
 # ============================================================
-def generate_image(prompt, model_name, width=664, height=1040, steps=20, seed=None):
+def generate_image(prompt, model_name, width=664, height=1040, steps=25, seed=None):
     """
     Генерує одне зображення, використовуючи модель з AVAILABLE_MODELS.
     """
