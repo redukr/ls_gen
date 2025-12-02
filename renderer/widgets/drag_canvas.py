@@ -1,56 +1,53 @@
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget, QApplication
 from PySide6.QtGui import (
-    QPainter, QColor, QPen, QFont, QFontMetrics, QPixmap, QBrush
+    QPainter, QColor, QPen, QFont, QPixmap, QBrush
 )
 from PySide6.QtCore import Qt, QRect, QPoint, Signal
 import json
 import os
 
 
-# ───────────────────────────────────────────────
-# DraggableElement V2.0 — кастомний елемент
-# ───────────────────────────────────────────────
+# ============================================================
+# DraggableElement V2.5 — з підтримкою zoom + snap-to-grid
+# ============================================================
 class DraggableElement(QWidget):
-    HANDLE_SIZE = 10  # resize точки
-    
+    HANDLE_SIZE = 10
+
     DEFAULT_DATA = {
-    "type": "text",
-    "text": "",
+        "type": "text",
+        "text": "",
+        "font": "Arial",
+        "font_size": 22,
+        "font_bold": False,
+        "font_italic": False,
+        "alignment": "left",
+        "text_color": "#ffffff",
 
-    "font": "Arial",
-    "font_size": 22,
-    "font_bold": False,
-    "font_italic": False,
-    "alignment": "left",
-    "text_color": "#ffffff",
+        "opacity": 1.0,
 
-    "opacity": 1.0,
+        "outline_width": 0,
+        "outline_color": "#000000",
 
-    "outline_width": 0,
-    "outline_color": "#000000",
+        "shadow_enabled": False,
+        "shadow_blur": 5,
+        "shadow_offset_x": 2,
+        "shadow_offset_y": 2,
+        "shadow_opacity": 0.5,
 
-    "shadow_enabled": False,
-    "shadow_blur": 5,
-    "shadow_offset_x": 2,
-    "shadow_offset_y": 2,
-    "shadow_opacity": 0.5,
-
-    "icon_path": None,
-    "icon_tint": "#ffffff",
+        "icon_path": None,
+        "icon_tint": "#ffffff",
     }
 
-    
     def __init__(self, name, parent, x, y, w, h, data=None):
         super().__init__(parent)
 
-        self.element_name = name
-        self.setGeometry(x, y, w, h)
-
-        # Якщо немає JSON — створюємо чисту структуру
         merged = DraggableElement.DEFAULT_DATA.copy()
         if data:
             merged.update(data)
         self.data = merged
+
+        self.element_name = name
+        self.setGeometry(x, y, w, h)
 
         self.dragging = False
         self.resizing = False
@@ -60,9 +57,9 @@ class DraggableElement(QWidget):
 
         self.setMouseTracking(True)
 
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
     # Alignment
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
     def get_alignment_flag(self):
         al = self.data["alignment"]
         if al == "left":
@@ -73,23 +70,22 @@ class DraggableElement(QWidget):
             return Qt.AlignHCenter | Qt.AlignVCenter
         return Qt.AlignLeft
 
-    # ───────────────────────────────────────────────
-    # Рендерінг
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
+    # Paint
+    # --------------------------------------------------------
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setRenderHint(QPainter.Antialiasing)
 
         data = self.data
         w, h = self.width(), self.height()
 
-        # Підсвітка при виборі
         if self.selected:
             painter.fillRect(self.rect(), QColor(60, 60, 60, 90))
 
-        painter.setOpacity(data["opacity"])
+        painter.setOpacity(data.get("opacity", 1.0))
 
-        # Якщо іконка
+        # ICON
         if data["type"] == "icon" and data["icon_path"]:
             pix = QPixmap(data["icon_path"])
             if not pix.isNull():
@@ -100,7 +96,7 @@ class DraggableElement(QWidget):
                     scaled
                 )
 
-        # Якщо текст
+        # TEXT
         if data["type"] == "text":
             font = QFont(data["font"], data["font_size"])
             font.setBold(data["font_bold"])
@@ -111,30 +107,28 @@ class DraggableElement(QWidget):
 
             # outline
             if data["outline_width"] > 0:
-                outline_pen = QPen(QColor(data["outline_color"]))
-                outline_pen.setWidth(data["outline_width"])
-                painter.setPen(outline_pen)
+                pen = QPen(QColor(data["outline_color"]))
+                pen.setWidth(data["outline_width"])
+                painter.setPen(pen)
                 painter.drawText(self.rect(), self.get_alignment_flag(), text)
 
-            # основний текст
             painter.setPen(QColor(data["text_color"]))
             painter.drawText(self.rect(), self.get_alignment_flag(), text)
 
-        # Resize-handles
+        # resize handles
         if self.selected:
             self.draw_resize_handles(painter)
-    
+
         painter.end()
-    
-    # ───────────────────────────────────────────────
+
     def draw_resize_handles(self, painter):
         s = self.HANDLE_SIZE
         rect = self.rect()
         handles = [
-            QRect(0, 0, s, s),  # top-left
-            QRect(rect.width() - s, 0, s, s),  # top-right
-            QRect(0, rect.height() - s, s, s),  # bottom-left
-            QRect(rect.width() - s, rect.height() - s, s, s),  # bottom-right
+            QRect(0, 0, s, s),
+            QRect(rect.width() - s, 0, s, s),
+            QRect(0, rect.height() - s, s, s),
+            QRect(rect.width() - s, rect.height() - s, s, s),
         ]
 
         painter.setBrush(QColor(255, 255, 255))
@@ -142,31 +136,40 @@ class DraggableElement(QWidget):
         for h in handles:
             painter.drawRect(h)
 
-    # ───────────────────────────────────────────────
-    # Події миші
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
+    # Mouse Events
+    # --------------------------------------------------------
     def mousePressEvent(self, event):
         self.selected = True
         self.update()
 
-        # Перевіряємо чи resize
         if self.is_on_resize_handle(event.pos()):
             self.resizing = True
             self.resize_direction = self.detect_resize_handle(event.pos())
         else:
-            # Drag
             self.dragging = True
             self.drag_offset = event.pos()
 
         self.parent().itemSelected.emit(self)
 
     def mouseMoveEvent(self, event):
+        parent = self.parent()
+        zoom = parent.zoom
+
+        # DRAG
         if self.dragging:
-            new_pos = self.mapToParent(event.pos() - self.drag_offset)
+            delta = (event.pos() - self.drag_offset) / zoom
+            new_pos = self.pos() + delta
+
+            # snap-to-grid
+            new_pos.setX(round(new_pos.x() / 16) * 16)
+            new_pos.setY(round(new_pos.y() / 16) * 16)
+
             self.move(new_pos)
 
+        # RESIZE
         if self.resizing:
-            self.perform_resize(event.pos())
+            self.perform_resize(event.pos(), zoom)
 
         self.update()
 
@@ -174,9 +177,9 @@ class DraggableElement(QWidget):
         self.dragging = False
         self.resizing = False
 
-    # ───────────────────────────────────────────────
-    # Resize логіка
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
+    # resize logic
+    # --------------------------------------------------------
     def is_on_resize_handle(self, pos):
         s = self.HANDLE_SIZE
         rect = self.rect()
@@ -192,62 +195,78 @@ class DraggableElement(QWidget):
         s = self.HANDLE_SIZE
         rect = self.rect()
         if QRect(0, 0, s, s).contains(pos): return "topleft"
-        if QRect(rect.width()-s, 0, s, s).contains(pos): return "topright"
-        if QRect(0, rect.height()-s, s, s).contains(pos): return "bottomleft"
-        if QRect(rect.width()-s, rect.height()-s, s, s).contains(pos): return "bottomright"
+        if QRect(rect.width() - s, 0, s, s).contains(pos): return "topright"
+        if QRect(0, rect.height() - s, s, s).contains(pos): return "bottomleft"
+        if QRect(rect.width() - s, rect.height() - s, s, s).contains(pos): return "bottomright"
         return None
 
-    def perform_resize(self, pos):
+    def perform_resize(self, pos, zoom):
+        pos = pos / zoom
         x, y, w, h = self.x(), self.y(), self.width(), self.height()
 
         if self.resize_direction == "bottomright":
-            self.resize(pos.x(), pos.y())
+            new_w = pos.x()
+            new_h = pos.y()
 
         elif self.resize_direction == "bottomleft":
             new_w = w - pos.x()
-            self.setGeometry(x + pos.x(), y, new_w, h)
-
+            x = x + pos.x()
+            new_h = h
         elif self.resize_direction == "topright":
             new_h = h - pos.y()
-            self.setGeometry(x, y + pos.y(), w, new_h)
-
-        elif self.resize_direction == "topleft":
+            y = y + pos.y()
+            new_w = w
+        else:
             new_w = w - pos.x()
             new_h = h - pos.y()
-            self.setGeometry(x + pos.x(), y + pos.y(), new_w, new_h)
+            x = x + pos.x()
+            y = y + pos.y()
+
+        # snap-to-grid
+        new_w = round(new_w / 16) * 16
+        new_h = round(new_h / 16) * 16
+        x = round(x / 16) * 16
+        y = round(y / 16) * 16
+
+        if new_w < 16: new_w = 16
+        if new_h < 16: new_h = 16
+
+        self.setGeometry(x, y, new_w, new_h)
 
 
-# ───────────────────────────────────────────────
-# DragCanvas V2.0 — робота з JSON + елементами
-# ───────────────────────────────────────────────
+# ============================================================
+# DragCanvas V3 — Adaptive + Zoom + Pan + Grid + Guides
+# ============================================================
 class DragCanvas(QWidget):
     itemSelected = Signal(object)
 
+    CARD_W = 768
+    CARD_H = 1088
+
     def __init__(self, template_path, parent=None):
         super().__init__(parent)
-        
-        self.art_pixmap = None
-        self.setFixedSize(400, 300)
+        self.setMinimumSize(768, 1088)
 
+        self.zoom = 1.0
+        self.pan_offset = QPoint(0, 0)
+        self.panning = False
+        self.last_pan_pos = None
+
+        self.art_pixmap = None
         self.template_path = template_path
         self.template = self.load_template()
-
         self.elements = {}
-        self.selected_element = None
-
         self.init_elements()
 
-        self.setStyleSheet("background-color: #222;")
+        self.setMouseTracking(True)
 
-    # ───────────────────────────────────────────────
+    # --------------------------------------------------------
     def load_template(self):
         if not os.path.exists(self.template_path):
             return {}
-
         with open(self.template_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    # ───────────────────────────────────────────────
     def init_elements(self):
         for name, block in self.template.items():
             x = block.get("x", 0)
@@ -257,8 +276,9 @@ class DragCanvas(QWidget):
 
             elem = DraggableElement(name, self, x, y, w, h, block)
             self.elements[name] = elem
-
-    # ───────────────────────────────────────────────
+    
+    
+    
     def save_template(self):
         data = {}
 
@@ -298,26 +318,104 @@ class DragCanvas(QWidget):
         with open(self.template_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
     
+    
+    # --------------------------------------------------------
+    # ART (768×1088)
+    # --------------------------------------------------------
     def set_art_pixmap(self, pixmap):
-        # Масштабуємо арт рівно під картку
-        scaled = pixmap.scaled(
-            768, 1088,
+        img = QPixmap(pixmap)
+        self.art_pixmap = img.scaled(
+            self.CARD_W, self.CARD_H,
             Qt.IgnoreAspectRatio,
             Qt.SmoothTransformation
         )
-        self.art_pixmap = scaled
         self.update()
-        
-    # ───────────────────────────────────────────────
+
+    # --------------------------------------------------------
+    # PAINT CANVAS
+    # --------------------------------------------------------
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
+        # ============================
+        # 1) Adaptive Fit to window
+        # ============================
+        available_w = self.width()
+        available_h = self.height()
+
+        fit_scale = min(
+            available_w / self.CARD_W,
+            available_h / self.CARD_H
+        )
+
+        total_scale = fit_scale * self.zoom
+
+        center_x = (available_w - self.CARD_W * total_scale) / 2
+        center_y = (available_h - self.CARD_H * total_scale) / 2
+
+        painter.translate(center_x + self.pan_offset.x(),
+                          center_y + self.pan_offset.y())
+
+        painter.scale(total_scale, total_scale)
+
+        # ============================
+        # 2) Draw ART
+        # ============================
         if self.art_pixmap:
             painter.drawPixmap(0, 0, self.art_pixmap)
-        else:
-            painter.setBrush(QBrush(QColor(30, 30, 30)))
-            painter.drawRect(self.rect())
+
+        # ============================
+        # 3) Grid 16px
+        # ============================
+        grid_pen = QPen(QColor(70, 70, 70), 1)
+
+        painter.setPen(grid_pen)
+        for x in range(0, self.CARD_W, 16):
+            painter.drawLine(x, 0, x, self.CARD_H)
+        for y in range(0, self.CARD_H, 16):
+            painter.drawLine(0, y, self.CARD_W, y)
+
+        # ============================
+        # 4) Guides: center lines
+        # ============================
+        guide_pen = QPen(QColor(255, 0, 0, 120), 2)
+        painter.setPen(guide_pen)
+
+        painter.drawLine(self.CARD_W / 2, 0, self.CARD_W / 2, self.CARD_H)
+        painter.drawLine(0, self.CARD_H / 2, self.CARD_W, self.CARD_H / 2)
 
         painter.end()
 
+    # --------------------------------------------------------
+    # ZOOM
+    # --------------------------------------------------------
+    def wheelEvent(self, event):
+        if event.angleDelta().y() > 0:
+            self.zoom *= 1.1
+        else:
+            self.zoom /= 1.1
+
+        self.zoom = max(0.2, min(4.0, self.zoom))
+        self.update()
+
+    # --------------------------------------------------------
+    # PAN (Shift + ЛКМ)
+    # --------------------------------------------------------
+    def mousePressEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+
+        if event.button() == Qt.LeftButton and modifiers == Qt.ShiftModifier:
+            self.panning = True
+            self.last_pan_pos = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.panning:
+            diff = event.pos() - self.last_pan_pos
+            self.pan_offset += diff
+            self.last_pan_pos = event.pos()
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        self.panning = False
+        self.last_pan_pos = None

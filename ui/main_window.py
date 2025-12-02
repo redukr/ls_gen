@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("LS_gen — AI Generator + Card Renderer")
+        self.setMinimumSize(400, 300)
 
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
