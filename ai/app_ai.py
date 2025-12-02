@@ -65,7 +65,12 @@ def generate_ai_images(
         if is_aborted and is_aborted():
             break
 
-        row_params = params[i] if params and i < len(params) else {}
+        if isinstance(params, list):
+            row_params = params[i] if i < len(params) else {}
+        elif isinstance(params, dict):
+            row_params = params
+        else:
+            row_params = {}
         pr = _personalize_prompt(prompt, row_params)
 
         img = generate_image(pr, model_name)
