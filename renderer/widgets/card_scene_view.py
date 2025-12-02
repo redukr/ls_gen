@@ -136,6 +136,7 @@ class CardSceneView(QGraphicsView):
         self.edit_mode = "template"
         self._card_mode_snapshot: Optional[dict] = None
         self._deck_color = QColor("#FFFFFF")
+        self._preview_item: Optional[QGraphicsPixmapItem] = None
 
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
@@ -173,8 +174,9 @@ class CardSceneView(QGraphicsView):
 
         self._scene.selectionChanged.connect(self._on_selection_changed)
 
-        if template_path:
-            self.load_template(template_path)
+        if not os.path.exists(self.layout_path):
+            self._ensure_default_layout()
+        self.load_template(self.layout_path)
 
     # ------------------------------------------------------------------
     def _emit_selected_item(self):
@@ -185,14 +187,6 @@ class CardSceneView(QGraphicsView):
     # ------------------------------------------------------------------
     def _on_selection_changed(self):
         self._emit_selected_item()
-
-    # ------------------------------------------------------------------
-    def apply_card_data(self, card: dict, deck_color: str):
-        """Populate scene items using card data from JSON."""
-        if not card:
-        if not os.path.exists(self.layout_path):
-            self._ensure_default_layout()
-        self.load_template(self.layout_path)
 
     # ------------------------------------------------------------------
     def _ensure_default_layout(self):
@@ -433,6 +427,18 @@ class CardSceneView(QGraphicsView):
         grid_size = 50
         left = int(rect.left()) - (int(rect.left()) % grid_size)
         top = int(rect.top()) - (int(rect.top()) % grid_size)
+        pen = QPen(QColor(60, 60, 60), 1)
+        painter.setPen(pen)
+
+        x = left
+        while x < rect.right():
+            painter.drawLine(x, rect.top(), x, rect.bottom())
+            x += grid_size
+
+        y = top
+        while y < rect.bottom():
+            painter.drawLine(rect.left(), y, rect.right(), y)
+            y += grid_size
     def _handle_item_selected(self, item: QGraphicsItem):
         item_id = self._lookup_item_id(item)
         if item_id:
@@ -484,6 +490,8 @@ class CardSceneView(QGraphicsView):
             return
 
         if not self._preview_item:
+            pixmap = QPixmap(int(self.card_size.width()), int(self.card_size.height()))
+            pixmap.fill(Qt.transparent)
             self._preview_item = QGraphicsPixmapItem(pixmap)
             self._preview_item.setTransformationMode(Qt.SmoothTransformation)
             self._preview_item.setZValue(20)

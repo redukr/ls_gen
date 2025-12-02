@@ -1,6 +1,8 @@
-from PIL import Image, ImageDraw, ImageFont
 import os
-from LS_gen.renderer.core.paths import ABSOLUTE_PATH
+
+from PIL import Image, ImageDraw, ImageFont
+
+from renderer.core.paths import ABSOLUTE_PATH
 
 class CardRenderer:
     """

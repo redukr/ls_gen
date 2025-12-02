@@ -7,18 +7,18 @@ from PySide6.QtCore import Qt
 import os
 
 # AI generator
-from LS_gen.ai.app_ai import generate_ai_images
+from ai.app_ai import generate_ai_images
 
 # Card Renderer core
-from LS_gen.renderer.core.json_loader import load_template
-from LS_gen.renderer.core.renderer import CardRenderer
-from LS_gen.renderer.core.paths import ABSOLUTE_PATH
+from renderer.core.json_loader import load_template
+from renderer.core.renderer import CardRenderer
+from renderer.core.paths import ABSOLUTE_PATH
 
 # Card Scene (preview)
-from LS_gen.renderer.widgets.card_scene_view import CardSceneView
+from renderer.widgets.card_scene_view import CardSceneView
 
 # PDF Exporter
-from LS_gen.renderer.core.pdf_exporter import export_pdf
+from renderer.core.pdf_exporter import export_pdf
 
 
 class MainWindow(QMainWindow):

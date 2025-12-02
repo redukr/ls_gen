@@ -1,7 +1,8 @@
-from reportlab.pdfgen import canvas
+import os
+
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
-import os
+from reportlab.pdfgen import canvas
 
 def export_pdf_from_list(image_list, output_path):
     """
@@ -34,3 +35,9 @@ def export_pdf_from_list(image_list, output_path):
 
     pdf.save()
     print(f"PDF збережено: {output_path}")
+
+
+def export_pdf(image_list, output_path):
+    """Backward-compatible wrapper for PDF export."""
+
+    return export_pdf_from_list(image_list, output_path)
