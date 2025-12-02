@@ -12,6 +12,12 @@ class _SafeDict(dict):
         return "{" + key + "}"
 
 
+STYLE_HINT = (
+    "Cinematic board-game art, cohesive color grading, well-defined subject,"
+    " tactical atmosphere"
+)
+
+
 def _personalize_prompt(prompt_template: str, params: dict) -> str:
     """Apply CSV params to prompt while staying friendly to Ukrainian text."""
 
@@ -23,6 +29,34 @@ def _personalize_prompt(prompt_template: str, params: dict) -> str:
     except Exception:
         # If formatting fails (e.g. malformed template) fall back to original.
         return prompt_template
+
+
+def _enrich_prompt_with_params(prompt: str, params: dict, *, style_hint: str = STYLE_HINT) -> str:
+    """Limit prompt enrichment to "name" and "type" fields.
+
+    Only the identifying fields are appended to keep images unified without
+    overloading the model with extra CSV details.
+    """
+
+    base_prompt = prompt.strip()
+
+    name = params.get("name") if params else None
+    type_value = params.get("type") if params else None
+
+    fragments = []
+    if name:
+        fragments.append(f'call-sign "{name}"')
+    if type_value:
+        fragments.append(f"type: {type_value}")
+
+    descriptor = "; ".join(fragments)
+
+    # Always add the shared style hint to each generated prompt so every image
+    # keeps the same board-game aesthetic even when personalized by CSV data.
+    if descriptor:
+        return f"{base_prompt} | Card brief: {descriptor}. {style_hint}."
+
+    return f"{base_prompt}. {style_hint}."
 
 
 def _resolve_csv_path(csv_path: str | None) -> str | None:
@@ -49,6 +83,8 @@ def generate_ai_images(
     width: int,
     height: int,
     is_aborted: Callable[[], bool] | None = None,
+    *,
+    style_hint: str = STYLE_HINT,
 ) -> List[str]:
     """
     Generate a list of images with optional CSV-driven personalization.
@@ -74,8 +110,14 @@ def generate_ai_images(
         else:
             row_params = {}
         pr = _personalize_prompt(prompt, row_params)
+        pr = _enrich_prompt_with_params(pr, row_params, style_hint=style_hint)
 
-        img = generate_image(pr, model_name, width=width, height=height)
+        img = generate_image(
+            pr,
+            model_name,
+            width=width,
+            height=height,
+        )
         path = f"export/ai_{i+1}.png"
         img.save(path)
         images.append(path)
