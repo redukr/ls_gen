@@ -9,13 +9,16 @@ import os
 # AI generator
 from ai.app_ai import generate_ai_images
 
+from renderer.widgets.property_panel import PropertyPanel
+
+
 # Card Renderer core
 from renderer.core.json_loader import load_template
 from renderer.core.renderer import CardRenderer
 from renderer.core.paths import ABSOLUTE_PATH
 
 # Card Scene (preview)
-from renderer.widgets.card_scene_view import CardSceneView
+from renderer.widgets.drag_canvas import DragCanvas
 
 # PDF Exporter
 from renderer.core.pdf_exporter import export_pdf
@@ -122,12 +125,17 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
 
         # Card preview scene
-        self.scene = CardSceneView()
+        self.scene = DragCanvas("renderer/templates/template.json")
         layout.addWidget(self.scene)
 
         # Control panel
         right = QVBoxLayout()
-
+        
+        self.property_panel = PropertyPanel()
+        right.addWidget(self.property_panel)
+        self.scene.itemSelected.connect(self.property_panel.set_item)
+        self.property_panel.settingsChanged.connect(self.scene.save_template)
+        
         # Load template
         layout_path = ABSOLUTE_PATH("templates/template.json")
         self.template = load_template(layout_path)
