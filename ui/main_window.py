@@ -3,8 +3,9 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QTextEdit, QFileDialog, QTabWidget, QMessageBox
 )
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject, QThread, Signal
 import os
+import threading
 
 # AI generator
 from ai.app_ai import generate_ai_images
@@ -25,6 +26,28 @@ from renderer.core.pdf_exporter import export_pdf
 
 from PySide6.QtWidgets import QComboBox
 from PySide6.QtWidgets import QFileDialog
+
+
+class GenerationWorker(QObject):
+    finished = Signal(list)
+    failed = Signal(str)
+
+    def __init__(self, prompt, csv_path, model, count, abort_event: threading.Event):
+        super().__init__()
+        self.prompt = prompt
+        self.csv_path = csv_path
+        self.model = model
+        self.count = count
+        self.abort_event = abort_event
+
+    def run(self):
+        try:
+            images = generate_ai_images(
+                self.prompt, self.csv_path, self.model, self.count, self.abort_event.is_set
+            )
+            self.finished.emit(images)
+        except Exception as e:
+            self.failed.emit(str(e))
 
 
 class MainWindow(QMainWindow):
@@ -62,9 +85,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Prompt:"))
         layout.addWidget(self.prompt_edit)
 
-        # CSV loader
+        # CSV/JSON loader (optional personalization)
         self.csv_path = None
-        self.csv_button = QPushButton("Load CSV")
+        self.csv_button = QPushButton("Load CSV/JSON")
         self.csv_button.clicked.connect(self.load_csv)
         layout.addWidget(self.csv_button)
 
@@ -87,6 +110,12 @@ class MainWindow(QMainWindow):
         self.generate_button.clicked.connect(self.generate_ai)
         layout.addWidget(self.generate_button)
 
+        # Abort button
+        self.abort_button = QPushButton("Abort")
+        self.abort_button.setEnabled(False)
+        self.abort_button.clicked.connect(self.abort_generation)
+        layout.addWidget(self.abort_button)
+
         # Preview
         self.preview_label = QLabel("No Image")
         self.preview_label.setAlignment(Qt.AlignCenter)
@@ -95,10 +124,12 @@ class MainWindow(QMainWindow):
         self.tab_ai.setLayout(layout)
 
     def load_csv(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Select CSV", "", "CSV (*.csv)")
+        start_dir = "config" if os.path.isdir("config") else ""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select CSV or JSON", start_dir, "CSV/JSON (*.csv *.json)")
         if path:
             self.csv_path = path
-            self.csv_button.setText(f"CSV Loaded: {os.path.basename(path)}")
+            self.csv_button.setText(f"Data Loaded: {os.path.basename(path)}")
 
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
@@ -110,14 +141,54 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Count must be integer")
             return
 
-        images = generate_ai_images(prompt, self.csv_path, model, count)
+        self.abort_event = threading.Event()
+        self._set_generation_controls(enabled=False)
+
+        self.worker_thread = QThread()
+        self.worker = GenerationWorker(prompt, self.csv_path, model, count, self.abort_event)
+        self.worker.moveToThread(self.worker_thread)
+        self.worker_thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.generation_finished)
+        self.worker.failed.connect(self.generation_failed)
+        self.worker.finished.connect(self.worker_thread.quit)
+        self.worker.failed.connect(self.worker_thread.quit)
+        self.worker_thread.finished.connect(self.worker.deleteLater)
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+        self.worker_thread.start()
+
+    def generation_finished(self, images):
         self.generated_images = images
 
         if images:
             pixmap = QPixmap(images[0])
             self.preview_label.setPixmap(pixmap.scaled(256, 256, Qt.KeepAspectRatio))
 
-        QMessageBox.information(self, "Done", f"Generated {len(images)} images")
+        if hasattr(self, "abort_event") and self.abort_event.is_set():
+            QMessageBox.information(self, "Aborted", f"Generation aborted after {len(images)} images")
+        else:
+            QMessageBox.information(self, "Done", f"Generated {len(images)} images")
+        self._set_generation_controls(enabled=True)
+        self._reset_worker_state()
+
+    def generation_failed(self, message: str):
+        QMessageBox.critical(self, "Generation failed", message)
+        self._set_generation_controls(enabled=True)
+        self._reset_worker_state()
+
+    def abort_generation(self):
+        if hasattr(self, "abort_event"):
+            self.abort_event.set()
+        self.abort_button.setEnabled(False)
+
+    def _set_generation_controls(self, enabled: bool):
+        self.generate_button.setEnabled(enabled)
+        self.csv_button.setEnabled(enabled)
+        self.abort_button.setEnabled(not enabled)
+
+    def _reset_worker_state(self):
+        self.worker = None
+        self.worker_thread = None
+        self.abort_event = None
 
     # --------------------------
     # TAB 2: CARD RENDERER
