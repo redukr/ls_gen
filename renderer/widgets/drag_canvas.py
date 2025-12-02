@@ -12,7 +12,34 @@ import os
 # ───────────────────────────────────────────────
 class DraggableElement(QWidget):
     HANDLE_SIZE = 10  # resize точки
+    
+    DEFAULT_DATA = {
+    "type": "text",
+    "text": "",
 
+    "font": "Arial",
+    "font_size": 22,
+    "font_bold": False,
+    "font_italic": False,
+    "alignment": "left",
+    "text_color": "#ffffff",
+
+    "opacity": 1.0,
+
+    "outline_width": 0,
+    "outline_color": "#000000",
+
+    "shadow_enabled": False,
+    "shadow_blur": 5,
+    "shadow_offset_x": 2,
+    "shadow_offset_y": 2,
+    "shadow_opacity": 0.5,
+
+    "icon_path": None,
+    "icon_tint": "#ffffff",
+    }
+
+    
     def __init__(self, name, parent, x, y, w, h, data=None):
         super().__init__(parent)
 
@@ -20,31 +47,10 @@ class DraggableElement(QWidget):
         self.setGeometry(x, y, w, h)
 
         # Якщо немає JSON — створюємо чисту структуру
-        self.data = data if data else {
-            "type": "text",
-            "text": name,
-
-            "font": "Arial",
-            "font_size": 22,
-            "font_bold": False,
-            "font_italic": False,
-            "alignment": "left",
-            "text_color": "#ffffff",
-
-            "opacity": 1.0,
-
-            "outline_width": 0,
-            "outline_color": "#000000",
-
-            "shadow_enabled": False,
-            "shadow_blur": 5,
-            "shadow_offset_x": 2,
-            "shadow_offset_y": 2,
-            "shadow_opacity": 0.5,
-
-            "icon_path": None,
-            "icon_tint": "#ffffff",
-        }
+        merged = DraggableElement.DEFAULT_DATA.copy()
+        if data:
+            merged.update(data)
+        self.data = merged
 
         self.dragging = False
         self.resizing = False
@@ -221,7 +227,7 @@ class DragCanvas(QWidget):
         super().__init__(parent)
         
         self.art_pixmap = None
-        self.setFixedSize(768, 1088)
+        self.setFixedSize(400, 300)
 
         self.template_path = template_path
         self.template = self.load_template()
