@@ -1,2 +1,9 @@
 /ai/models
 /venv
+/renderer/core/__pycache__
+/ai/tools/__pycache__
+/ai/__pycache__
+/renderer/__pycache__
+/renderer/widgets/__pycache__
+/ui/__pycache__
+/export

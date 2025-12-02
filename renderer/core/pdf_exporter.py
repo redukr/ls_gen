@@ -3,20 +3,26 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 import os
 
+# ─────────────────────────────────────────────
+# ПРАВИЛЬНИЙ PDF EXPORTER ДЛЯ LS_gen
+# ─────────────────────────────────────────────
+
 def export_pdf_from_list(image_list, output_path):
     """
-    Створює PDF-файл з переліку PNG-зображень.
-    Кожна картка — окрема сторінка PDF.
-    Працює з LS_gen.
+    Створює PDF з переліку PNG/JPG зображень.
+    Кожне зображення → нова сторінка.
+    Підтримує LS_gen і PyInstaller.
     """
 
     if not image_list:
         raise ValueError("Список зображень порожній — нема що експортувати.")
 
-    # Переконуємось, що директорія існує
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # Створюємо директорію, якщо її нема
+    folder = os.path.dirname(output_path)
+    if folder:
+        os.makedirs(folder, exist_ok=True)
 
-    # Формуємо PDF
+    # PDF документ
     pdf = canvas.Canvas(output_path, pagesize=letter)
     page_w, page_h = letter
 
@@ -30,7 +36,16 @@ def export_pdf_from_list(image_list, output_path):
             pdf.drawImage(img, 0, 0, width=page_w, height=page_h, preserveAspectRatio=True)
             pdf.showPage()
         except Exception as e:
-            print(f"[PDF ERROR] Помилка при обробці {img_path}: {e}")
+            print(f"[PDF ERROR] Помилка {img_path}: {e}")
 
     pdf.save()
     print(f"PDF збережено: {output_path}")
+
+
+# ─────────────────────────────────────────────
+# Псевдонім, якщо хтось викличе стару функцію
+# ─────────────────────────────────────────────
+
+def export_pdf(images, path):
+    """Старе ім'я функції. Залишається для сумісності."""
+    return export_pdf_from_list(images, path)

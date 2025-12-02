@@ -7,18 +7,21 @@ from PySide6.QtCore import Qt
 import os
 
 # AI generator
-from LS_gen.ai.app_ai import generate_ai_images
+from ai.app_ai import generate_ai_images
 
 # Card Renderer core
-from LS_gen.renderer.core.json_loader import load_template
-from LS_gen.renderer.core.renderer import CardRenderer
-from LS_gen.renderer.core.paths import ABSOLUTE_PATH
+from renderer.core.json_loader import load_template
+from renderer.core.renderer import CardRenderer
+from renderer.core.paths import ABSOLUTE_PATH
 
 # Card Scene (preview)
-from LS_gen.renderer.widgets.card_scene_view import CardSceneView
+from renderer.widgets.card_scene_view import CardSceneView
 
 # PDF Exporter
-from LS_gen.renderer.core.pdf_exporter import export_pdf
+from renderer.core.pdf_exporter import export_pdf
+
+from PySide6.QtWidgets import QComboBox
+from PySide6.QtWidgets import QFileDialog
 
 
 class MainWindow(QMainWindow):
@@ -67,9 +70,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.count_edit)
 
         # Model name
-        self.model_edit = QLineEdit("realvisxl")
         layout.addWidget(QLabel("Model name:"))
-        layout.addWidget(self.model_edit)
+        self.model_combo = QComboBox()
+        self.model_combo.addItems([
+            "RealVisXL (SDXL)",
+            "SDXL Base 1.0"
+        ])
+        layout.addWidget(self.model_combo)
 
         # Generate button
         self.generate_button = QPushButton("Generate Images")
@@ -91,7 +98,7 @@ class MainWindow(QMainWindow):
 
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
-        model = self.model_edit.text()
+        model = self.model_combo.currentText()
 
         try:
             count = int(self.count_edit.text())
@@ -180,9 +187,17 @@ class MainWindow(QMainWindow):
     def setup_export_tab(self):
         layout = QVBoxLayout()
 
-        btn = QPushButton("Export deck to PDF")
-        btn.clicked.connect(self.export_pdf_deck)
-        layout.addWidget(btn)
+        self.export_dir = QLineEdit()
+        self.export_dir.setPlaceholderText("Select export directory...")
+        layout.addWidget(self.export_dir)
+
+        choose_btn = QPushButton("Choose folder")
+        choose_btn.clicked.connect(self.choose_export_folder)
+        layout.addWidget(choose_btn)
+
+        export_btn = QPushButton("Export deck to PDF")
+        export_btn.clicked.connect(self.export_pdf_deck)
+        layout.addWidget(export_btn)
 
         self.tab_export.setLayout(layout)
 
@@ -193,7 +208,18 @@ class MainWindow(QMainWindow):
 
         os.makedirs("export", exist_ok=True)
 
-        out = "export/deck.pdf"
-        export_pdf(self.rendered_cards, out)
+        export_path = self.export_dir.text().strip()
+
+        if not export_path:
+            QMessageBox.warning(self, "Error", "Please choose export directory first")
+            return
+
+        out = os.path.join(export_path, "deck.pdf")
+        export_pdf_from_list(self.rendered_cards, out)
 
         QMessageBox.information(self, "Done", f"PDF exported: {out}")
+        
+    def choose_export_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select export folder")
+        if folder:
+            self.export_dir.setText(folder)

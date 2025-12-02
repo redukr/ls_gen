@@ -82,3 +82,16 @@ class JSONLoader:
                 return c
 
         return None
+
+# ─────────────────────────────────────────────
+# Простий завантажувач template.json
+# ─────────────────────────────────────────────
+
+import json
+from renderer.core.paths import ABSOLUTE_PATH
+
+def load_template(path: str) -> dict:
+    """Завантажує template.json і повертає dict."""
+    full = ABSOLUTE_PATH(path)
+    with open(full, "r", encoding="utf-8") as f:
+        return json.load(f)

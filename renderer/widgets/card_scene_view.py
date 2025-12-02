@@ -190,8 +190,12 @@ class CardSceneView(QGraphicsView):
     def apply_card_data(self, card: dict, deck_color: str):
         """Populate scene items using card data from JSON."""
         if not card:
+            return
+        
+        # Якщо layout не існує — створити дефолтний    
         if not os.path.exists(self.layout_path):
             self._ensure_default_layout()
+        # Завантажити шаблон
         self.load_template(self.layout_path)
 
     # ------------------------------------------------------------------
