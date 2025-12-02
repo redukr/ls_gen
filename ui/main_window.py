@@ -108,9 +108,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Dimensions:"))
         self.dimension_combo = QComboBox()
         self.dimension_options = {
-            "440 × 692 px (200 DPI)": (440, 692),
-            "551 × 865 px (250 DPI)": (551, 865),
-            "661 × 1039 px (300 DPI)": (661, 1039),
+            "448 × 696 px (200 DPI)": (448, 696),
+            "552 × 864 px (250 DPI)": (552, 864),
+            "664 × 1040 px (300 DPI)": (664, 1040),
         }
         self.dimension_combo.addItems(self.dimension_options.keys())
         layout.addWidget(self.dimension_combo)
