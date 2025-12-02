@@ -8,7 +8,7 @@ import os
 import threading
 
 # AI generator
-from ai.app_ai import generate_ai_images
+from ai.app_ai import generate_ai_images, STYLE_HINT
 
 from renderer.widgets.property_panel import PropertyPanel
 
@@ -32,7 +32,17 @@ class GenerationWorker(QObject):
     finished = Signal(list)
     failed = Signal(str)
 
-    def __init__(self, prompt, csv_path, model, count, width, height, abort_event: threading.Event):
+    def __init__(
+        self,
+        prompt: str,
+        csv_path: str | None,
+        model: str,
+        count: int,
+        width: int,
+        height: int,
+        style_hint: str,
+        abort_event: threading.Event,
+    ):
         super().__init__()
         self.prompt = prompt
         self.csv_path = csv_path
@@ -40,6 +50,7 @@ class GenerationWorker(QObject):
         self.count = count
         self.width = width
         self.height = height
+        self.style_hint = style_hint
         self.abort_event = abort_event
 
     def run(self):
@@ -51,7 +62,8 @@ class GenerationWorker(QObject):
                 self.count,
                 self.width,
                 self.height,
-                self.abort_event.is_set
+                self.abort_event.is_set,
+                style_hint=self.style_hint,
             )
             self.finished.emit(images)
         except Exception as e:
@@ -92,6 +104,12 @@ class MainWindow(QMainWindow):
         self.prompt_edit = QTextEdit()
         layout.addWidget(QLabel("Prompt:"))
         layout.addWidget(self.prompt_edit)
+
+        # Style hint (editable)
+        layout.addWidget(QLabel("Style hint:"))
+        self.style_hint_edit = QTextEdit()
+        self.style_hint_edit.setPlainText(STYLE_HINT)
+        layout.addWidget(self.style_hint_edit)
 
         # CSV/JSON loader (optional personalization)
         self.csv_path = None
@@ -152,6 +170,7 @@ class MainWindow(QMainWindow):
 
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
+        style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
         model = self.model_combo.currentText()
 
         try:
@@ -176,6 +195,7 @@ class MainWindow(QMainWindow):
             count,
             width,
             height,
+            style_hint,
             self.abort_event
         )
         self.worker.moveToThread(self.worker_thread)
