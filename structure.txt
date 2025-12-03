@@ -1,4 +1,4 @@
-LS_gen/
+ls_gen/
     requirements.txt
     run.py
     structure.py
@@ -8,6 +8,7 @@ LS_gen/
         __init__.py
         models/
             __init__.py
+            opus-mt-uk-en/
             realvisxl/
             stable-diffusion-xl-base-1.0/
         tools/
@@ -31,8 +32,9 @@ LS_gen/
             rng.png
             stb.png
     config/
+        deck_95.csv
         __init__.py
-    models/
+    export/
     renderer/
         __init__.py
         core/
