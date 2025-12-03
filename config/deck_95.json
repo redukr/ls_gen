@@ -1,0 +1,83 @@
+{
+  "deck_color": "#7B1F1F",
+
+	"prompts": {
+	  "unit": "{name}, Ukrainian Air Assault soldier. Scene must reflect this role. Style of Ukrainian graphic novel 'Воля': thick ink lines, warm muted colors, gritty cel-shading. No superheroes.",
+	  
+	  "tactic": "Tactical diagram for: {name}. 'Воля' style, thick lines, warm palette, simple arrows. No characters.",
+	  
+	  "equipment": "Ukrainian Air Assault equipment: {name}. 'Воля' style, thick lines, warm muted colors, cel-shading.",
+	  
+	  "event": "Military comic panel: {name}. 'Воля' style, thick lines, warm palette, gritty cel-shading.",
+	  
+	  "thematic": "Airborne emblem for: {name}, in 'Воля' comic style, thick lines, warm muted palette."
+	},
+		
+
+  "cards": [
+    {"name": "Десантно-штурмовик","type": "unit","cost": 1,"cost_type": "BF","atk": 2,"def": 1,"stb": 3,"init": 3,"rng": 1,"move": 1},
+    {"name": "Кулеметник","type": "unit","cost": 1,"cost_type": "BF","atk": 3,"def": 1,"stb": 3,"init": 2,"rng": 2,"move": 1},
+    {"name": "Гранатометник","type": "unit","cost": 1,"cost_type": "BF","atk": 3,"def": 0,"stb": 2,"init": 2,"rng": 2,"move": 1},
+    {"name": "Стрілець-десантник","type": "unit","cost": 1,"cost_type": "BF","atk": 1,"def": 1,"stb": 2,"init": 3,"rng": 1,"move": 1},
+    {"name": "Розвідник","type": "unit","cost": 1,"cost_type": "BF","atk": 2,"def": 1,"stb": 2,"init": 4,"rng": 2,"move": 2},
+    {"name": "Снайпер мобільної групи","type": "unit","cost": 1,"cost_type": "BF","atk": 3,"def": 0,"stb": 2,"init": 3,"rng": 4,"move": 1},
+    {"name": "Група протидії БпЛА","type": "unit","cost": 1,"cost_type": "LOG","atk": 2,"def": 1,"stb": 3,"init": 3,"rng": 3,"move": 1},
+    {"name": "Мобільна група на пікапі","type": "unit","cost": 1,"cost_type": "LOG","atk": 2,"def": 1,"stb": 3,"init": 4,"rng": 2,"move": 2},
+    {"name": "Екіпаж БМП","type": "unit","cost": 2,"cost_type": "LOG","atk": 3,"def": 2,"stb": 4,"init": 2,"rng": 2,"move": 1},
+    {"name": "Екіпаж БТР-3","type": "unit","cost": 2,"cost_type": "LOG","atk": 3,"def": 2,"stb": 4,"init": 2,"rng": 2,"move": 1},
+    {"name": "Медик десантний","type": "unit","cost": 1,"cost_type": "BF","atk": 0,"def": 1,"stb": 2,"init": 3,"rng": 1,"move": 1},
+    {"name": "Мінометник 120 мм","type": "unit","cost": 1,"cost_type": "LOG","atk": 3,"def": 0,"stb": 2,"init": 2,"rng": 4,"move": 0},
+
+    {"name": "Рейдовий прорив","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Глибокий обхід","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Мобільний маневр","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Десантна швидкість","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Мінометна підтримка","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Перехресний вогонь","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Штурмовий тиск","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "FPV-атака","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Робота мобільних груп","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Полювання на бронетехніку","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Маневр оборони","type": "tactic","cost": 1,"cost_type": "CI"},
+    {"name": "Контратака малими силами","type": "tactic","cost": 1,"cost_type": "CI"},
+
+    {"name": "Сила, Відвага, Честь!","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Рейдовий дух","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Поліська міць","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Непохитність десанту","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Десантна відвага","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Мобільний удар","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Блискавичний прорив","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Сила єдності","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Нічний натиск","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Стрибок крізь хаос","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Сталева воля","type": "thematic","cost": 1,"cost_type": "CI"},
+    {"name": "Крилатий удар","type": "thematic","cost": 1,"cost_type": "CI"},
+
+    {"name": "Парашут С-5","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "Десантний комплект","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "Розвантажувальна система «Дрейк»","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "ПНБ","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "Маруновий берет","type": "equipment","cost": 1,"cost_type": "CI"},
+    {"name": "ПКМ","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "FN Minimi","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "NLAW","type": "equipment","cost": 2,"cost_type": "LOG"},
+    {"name": "FPV-дрон","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "Трофейна техніка","type": "equipment","cost": 0,"cost_type": "LOG"},
+    {"name": "Десантна аптечка","type": "equipment","cost": 1,"cost_type": "LOG"},
+    {"name": "Підвісна система швидкого скидання","type": "equipment","cost": 1,"cost_type": "LOG"},
+
+    {"name": "Перехід у наступ","type": "event","cost": 0,"cost_type": "CI"},
+    {"name": "Атака з повітря","type": "event","cost": 1,"cost_type": "CI"},
+    {"name": "Артилерійська підтримка","type": "event","cost": 1,"cost_type": "CI"},
+    {"name": "Негода","type": "event","cost": 0,"cost_type": "CI"},
+    {"name": "Масований штурм","type": "event","cost": 1,"cost_type": "CI"},
+    {"name": "Підкріплення","type": "event","cost": 0,"cost_type": "BF"},
+    {"name": "Зміна сектора","type": "event","cost": 0,"cost_type": "CI"},
+    {"name": "Узгодження вогню","type": "event","cost": 1,"cost_type": "CI"},
+    {"name": "Перекидання резервів","type": "event","cost": 1,"cost_type": "LOG"},
+    {"name": "Зміна осі атаки","type": "event","cost": 0,"cost_type": "CI"},
+    {"name": "Розрив комунікацій","type": "event","cost": 0,"cost_type": "CI"},
+    {"name": "Перевага в повітрі","type": "event","cost": 1,"cost_type": "CI"}
+  ]
+}

@@ -1,4 +1,4 @@
-ls_gen/
+LS_gen/
     requirements.txt
     run.py
     structure.py
@@ -33,8 +33,19 @@ ls_gen/
             stb.png
     config/
         deck_95.csv
+        deck_95.json
         __init__.py
-    export/
+    models/
+        opus-mt-uk-en/
+            config.json
+            generation_config.json
+            pytorch_model.bin
+            README.md
+            source.spm
+            target.spm
+            tf_model.h5
+            tokenizer_config.json
+            vocab.json
     renderer/
         __init__.py
         core/
@@ -53,6 +64,11 @@ ls_gen/
             card_scene_view.py
             drag_canvas.py
             property_panel.py
+            translator.py
     ui/
+        ai_tab.py
+        data_tab.py
+        export_tab.py
         main_window.py
+        render_tab.py
         __init__.py

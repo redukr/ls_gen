@@ -24,6 +24,34 @@ class RenderTab(QWidget):
         self.get_generated_images = get_generated_images
         self.get_export_dir = get_export_dir
 
+        self.language = "en"
+        self.strings = {
+            "en": {
+                "apply_ai": "Apply AI Image",
+                "render_card": "Render Card",
+                "no_images_title": "No images",
+                "no_images_message": "Please generate AI images first",
+                "error_title": "Error",
+                "apply_first": "Apply AI image first",
+                "default_title": "Generated Unit",
+                "default_desc": "AI-generated card",
+                "done_title": "Done",
+                "done_message": "Card saved: {path}",
+            },
+            "uk": {
+                "apply_ai": "Додати AI-зображення",
+                "render_card": "Відрендерити картку",
+                "no_images_title": "Немає зображень",
+                "no_images_message": "Спочатку згенеруйте AI-зображення",
+                "error_title": "Помилка",
+                "apply_first": "Спочатку додайте AI-зображення",
+                "default_title": "Згенерований юніт",
+                "default_desc": "Картка, згенерована ШІ",
+                "done_title": "Готово",
+                "done_message": "Картку збережено: {path}",
+            },
+        }
+
         self.rendered_cards: list[str] = []
         self.current_art: str | None = None
 
@@ -46,22 +74,28 @@ class RenderTab(QWidget):
         self.template = load_template(layout_path)
 
         # Button: load AI image into card preview
-        self.apply_ai_button = QPushButton("Apply AI Image")
+        self.apply_ai_button = QPushButton()
         self.apply_ai_button.clicked.connect(self.apply_ai_to_card)
         right.addWidget(self.apply_ai_button)
 
         # Button: render final card (PNG)
-        self.render_button = QPushButton("Render Card")
+        self.render_button = QPushButton()
         self.render_button.clicked.connect(self.render_card)
         right.addWidget(self.render_button)
 
         layout.addLayout(right)
         self.setLayout(layout)
 
+        self.set_language(self.language)
+
     def apply_ai_to_card(self):
         generated_images = self.get_generated_images()
         if not generated_images:
-            QMessageBox.warning(self, "No images", "Please generate AI images first")
+            QMessageBox.warning(
+                self,
+                self.strings[self.language]["no_images_title"],
+                self.strings[self.language]["no_images_message"],
+            )
             return
 
         first_img = generated_images[0]
@@ -70,7 +104,11 @@ class RenderTab(QWidget):
 
     def render_card(self):
         if not self.current_art:
-            QMessageBox.warning(self, "Error", "Apply AI image first")
+            QMessageBox.warning(
+                self,
+                self.strings[self.language]["error_title"],
+                self.strings[self.language]["apply_first"],
+            )
             return
 
         export_dir = (self.get_export_dir() or "export").strip() or "export"
@@ -79,8 +117,8 @@ class RenderTab(QWidget):
         # minimal card data
         card_data = {
             "img": self.current_art,
-            "title": "Generated Unit",
-            "description": "AI-generated card",
+            "title": self.strings[self.language]["default_title"],
+            "description": self.strings[self.language]["default_desc"],
             "atk": 3,
             "def": 2,
             "stb": 1
@@ -92,10 +130,22 @@ class RenderTab(QWidget):
         save_path = os.path.join(export_dir, "rendered_card.png")
         img.save(save_path)
 
-        QMessageBox.information(self, "Done", f"Card saved: {save_path}")
+        QMessageBox.information(
+            self,
+            self.strings[self.language]["done_title"],
+            self.strings[self.language]["done_message"].format(path=save_path),
+        )
 
         self.rendered_cards = [save_path]
         self.cardsRendered.emit(self.rendered_cards)
 
     def get_rendered_cards(self) -> list[str]:
         return self.rendered_cards
+
+    def set_language(self, language: str):
+        if language not in self.strings:
+            return
+        self.language = language
+        s = self.strings[language]
+        self.apply_ai_button.setText(s["apply_ai"])
+        self.render_button.setText(s["render_card"])
