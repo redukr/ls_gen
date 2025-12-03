@@ -8,4 +8,5 @@ accelerate==0.27.2
 safetensors==0.4.2
 huggingface_hub==0.20.3
 reportlab==4.0.9
+sentencepiece==0.2.0
  
