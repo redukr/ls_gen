@@ -1,5 +1,6 @@
 import os
 from typing import Callable, List
+from renderer.widgets.translator import OfflineTranslator
 
 from ai.tools.csv_loader import load_params
 from ai.tools.generator import generate_image
@@ -85,6 +86,7 @@ def generate_ai_images(
     is_aborted: Callable[[], bool] | None = None,
     *,
     style_hint: str = STYLE_HINT,
+    language: str = "Українська",   # ← ДОДАТИ ЦЕ
 ) -> List[str]:
     """
     Generate a list of images with optional CSV-driven personalization.
@@ -109,6 +111,20 @@ def generate_ai_images(
             row_params = params
         else:
             row_params = {}
+            
+        # -------------------------------------------------
+        # Переклад CSV-полів, якщо обрана мова ≠ українська
+        # -------------------------------------------------
+        if language != "Українська" and isinstance(row_params, dict):
+            translator = OfflineTranslator()
+            for k, v in row_params.items():
+                if isinstance(v, str):
+                    try:
+                        row_params[k] = translator.translate(v)
+                    except Exception:
+                        pass
+
+        
         pr = _personalize_prompt(prompt, row_params)
         pr = _enrich_prompt_with_params(pr, row_params, style_hint=style_hint)
 

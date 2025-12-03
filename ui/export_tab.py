@@ -23,7 +23,7 @@ class ExportTab(QWidget):
         super().__init__(parent)
         self.get_rendered_cards = get_rendered_cards
         self.language = "en"
-
+        
         self.strings = {
             "en": {
                 "directory_placeholder": "Select export directory...",
@@ -79,7 +79,7 @@ class ExportTab(QWidget):
         layout.addWidget(self.language_box)
 
         self.setLayout(layout)
-
+        
     def export_pdf_deck(self):
         rendered_cards = self.get_rendered_cards()
         if not rendered_cards:
@@ -121,6 +121,8 @@ class ExportTab(QWidget):
         self.export_dir.setPlaceholderText(strings["directory_placeholder"])
         self.choose_btn.setText(strings["choose_folder"])
         self.export_btn.setText(strings["export_pdf"])
+        self.current_language = "Українська" if language == "uk" else "English"
+
         # Update group box and buttons without retriggering signal
         self.language_en.blockSignals(True)
         self.language_uk.blockSignals(True)
@@ -141,3 +143,5 @@ class ExportTab(QWidget):
         if selected != self.language:
             self.set_language(selected)
             self.languageChanged.emit(selected)
+            self.current_language = "Українська" if selected == "uk" else "English"
+    
