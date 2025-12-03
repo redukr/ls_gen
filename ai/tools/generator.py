@@ -116,7 +116,22 @@ def load_model(model_type, model_path):
 # ============================================================
 #                     GENERATE IMAGE
 # ============================================================
-def generate_image(prompt, model_name, width=768, height=1088, steps=25, seed=None):
+DEFAULT_NEGATIVE_PROMPT = (
+    "low quality, jpeg artifacts, blurry, distorted, watermark, text, logo, signature,"
+    " extra limbs, extra fingers, mutation, disfigured, poorly drawn hands,"
+    " malformed anatomy, long neck, duplicate body"
+)
+
+
+def generate_image(
+    prompt,
+    model_name,
+    width=664,
+    height=1040,
+    steps=25,
+    seed=None,
+    negative_prompt: str | None = None,
+):
     """
     Генерує одне зображення, використовуючи модель з AVAILABLE_MODELS.
     """
@@ -136,7 +151,7 @@ def generate_image(prompt, model_name, width=768, height=1088, steps=25, seed=No
     # --- Генерація ---
     image = pipe(
         prompt=prompt,
-        negative_prompt="low quality, jpeg artifacts, blurry, distorted, watermark",
+        negative_prompt=negative_prompt or DEFAULT_NEGATIVE_PROMPT,
         num_inference_steps=steps,
         width=width,
         height=height,
