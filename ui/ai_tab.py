@@ -273,7 +273,8 @@ class AiGeneratorTab(QWidget):
     def get_generated_images(self) -> list[str]:
         return self.generated_images
 
-    def _populate_dimensions(self, strings: dict):
+    def _populate_dimensions(self, strings: dict | None = None):
+        strings = strings or self.strings or {}
         current = self._get_selected_dimensions()
         selection_label = self.dimension_combo.currentText()
         self.dimension_combo.clear()
