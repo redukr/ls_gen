@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from renderer.widgets.translator import OfflineTranslator
+from ui.locales import ensure_language, format_message, get_section
 
 
 class DataTableWidget(QTableWidget):
