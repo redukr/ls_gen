@@ -4,19 +4,14 @@
     },
     "app": {
         "name": "LS_gen_01",
-        "version": "1.0.0"
-    },
-    "menu": {
-        "file": "Файл",
-        "edit": "Редагувати",
-        "view": "Вигляд",
-        "help": "Допомога"
+        "version": "1.0.0",
+        "window_title": "LS_gen — Генератор ШІ + Рендер карток"
     },
     "tabs": {
         "ai_generator": "Генератор ШІ",
-        "card_editor": "Редактор карток",
-        "deck_viewer": "Перегляд колоди",
-        "export": "Експорт"
+        "render": "Рендер карток",
+        "export": "Експорт",
+        "data_editor": "Редактор даних"
     },
     "card_type": {
         "unit": "Юніт",
@@ -55,7 +50,28 @@
         "preview": "Попередній перегляд:",
         "no_image": "Немає зображення",
         "success_msg": "Згенеровано {count} зображень",
-        "aborted_msg": "Генерацію перервано після {count} зображень"
+        "aborted_msg": "Генерацію перервано після {count} зображень",
+        "prompt": "Підказка:",
+        "style_hint": "Стиль:",
+        "load_data": "Завантажити CSV/JSON",
+        "dimensions": "Розмір:",
+        "model_label": "Назва моделі:",
+        "generate_button": "Згенерувати зображення",
+        "abort_button": "Зупинити",
+        "open_dialog": "Виберіть CSV або JSON",
+        "data_loaded": "Файл завантажено: {name}",
+        "count_error_title": "Помилка",
+        "count_error": "Кількість має бути цілим числом",
+        "aborted_title": "Перервано",
+        "aborted_message": "Генерацію зупинено після {count} зображень",
+        "done_title": "Готово",
+        "done_message": "Згенеровано {count} зображень",
+        "fail_title": "Помилка генерації",
+        "dimension_labels": [
+            "448 × 696 пікс (200 DPI)",
+            "552 × 864 пікс (250 DPI)",
+            "664 × 1040 пікс (300 DPI)"
+        ]
     },
     "card_editor": {
         "title": "Редактор карток",
@@ -92,11 +108,52 @@
         "select_all": "Вибрати все",
         "deselect_all": "Скасувати вибір",
         "export_images": "Експортувати зображення",
-        "export_pdf": "Експортувати PDF",
-        "select_folder": "Оберіть папку для збереження",
+        "export_pdf": "Експортувати колоду у PDF",
+        "select_folder": "Оберіть теку для збереження",
         "success_msg": "Експортовано до {path}",
         "no_cards_selected": "Не вибрано жодної картки",
-        "confirm_overwrite": "Перезаписати існуючі файли?"
+        "confirm_overwrite": "Перезаписати існуючі файли?",
+        "directory_placeholder": "Оберіть теку для експорту...",
+        "choose_folder": "Вибрати теку",
+        "error_title": "Помилка",
+        "render_first": "Спочатку відрендерте картку",
+        "done_title": "Готово",
+        "pdf_exported": "PDF збережено: {path}",
+        "language_label": "Мова інтерфейсу",
+        "languages": {
+            "en": "English",
+            "uk": "Українська"
+        }
+    },
+    "render_tab": {
+        "apply_ai": "Додати AI-зображення",
+        "render_card": "Відрендерити картку",
+        "no_images_title": "Немає зображень",
+        "no_images_message": "Спочатку згенеруйте AI-зображення",
+        "error_title": "Помилка",
+        "apply_first": "Спочатку додайте AI-зображення",
+        "default_title": "Згенерований юніт",
+        "default_desc": "Картка, згенерована ШІ",
+        "done_title": "Готово",
+        "done_message": "Картку збережено: {path}"
+    },
+    "data_editor": {
+        "load": "Завантажити CSV/JSON",
+        "save": "Зберегти CSV/JSON",
+        "open_title": "Відкрити CSV або JSON",
+        "unsupported_title": "Непідтримувано",
+        "unsupported_open": "Підтримуються лише файли CSV або JSON",
+        "unsupported_save": "Будь ласка, використовуйте розширення .csv або .json",
+        "no_data_title": "Немає даних",
+        "no_data_body": "Нічого збрігати",
+        "error_title": "Помилка",
+        "save_title": "Зберегти CSV або JSON",
+        "load_failed": "Не вдалося завантажити файл: {error}",
+        "save_failed": "Не вдалося зберегти файл: {error}",
+        "saved_title": "Збережено",
+        "saved_message": "Дані збережено до {path}",
+        "translation_title": "Переклад недоступний",
+        "translation_body": "Не вдалося запустити автоматичний переклад. Переконайтеся, що залежності встановлені.\n\nПодробиці: {details}"
     },
     "template_editor": {
         "title": "Редактор шаблонів",

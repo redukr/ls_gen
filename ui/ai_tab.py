@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from ai.app_ai import generate_ai_images, STYLE_HINT
+from ui.locales import ensure_language, format_message, get_section
 
 
 class GenerationWorker(QObject):
@@ -65,49 +66,8 @@ class AiGeneratorTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.language = "en"
-        self.strings = {
-            "en": {
-                "prompt": "Prompt:",
-                "style_hint": "Style hint:",
-                "load_data": "Load CSV/JSON",
-                "count": "Count:",
-                "dimensions": "Dimensions:",
-                "model": "Model name:",
-                "generate": "Generate Images",
-                "abort": "Abort",
-                "no_image": "No Image",
-                "open_dialog": "Select CSV or JSON",
-                "data_loaded": "Data Loaded: {name}",
-                "count_error_title": "Error",
-                "count_error": "Count must be integer",
-                "aborted_title": "Aborted",
-                "aborted_message": "Generation aborted after {count} images",
-                "done_title": "Done",
-                "done_message": "Generated {count} images",
-                "fail_title": "Generation failed",
-            },
-            "uk": {
-                "prompt": "Підказка:",
-                "style_hint": "Стиль:",
-                "load_data": "Завантажити CSV/JSON",
-                "count": "Кількість:",
-                "dimensions": "Розмір:",
-                "model": "Назва моделі:",
-                "generate": "Згенерувати зображення",
-                "abort": "Зупинити",
-                "no_image": "Немає зображення",
-                "open_dialog": "Виберіть CSV або JSON",
-                "data_loaded": "Файл завантажено: {name}",
-                "count_error_title": "Помилка",
-                "count_error": "Кількість має бути цілим числом",
-                "aborted_title": "Перервано",
-                "aborted_message": "Генерацію зупинено після {count} зображень",
-                "done_title": "Готово",
-                "done_message": "Згенеровано {count} зображень",
-                "fail_title": "Помилка генерації",
-            },
-        }
+        self.language = ensure_language("en")
+        self.strings: dict = {}
 
         self.generated_images: list[str] = []
         self.csv_path: str | None = None
@@ -146,9 +106,9 @@ class AiGeneratorTab(QWidget):
         layout.addWidget(self.dimensions_label)
         self.dimension_combo = QComboBox()
         self.dimension_options = [
-            ((448, 696), {"en": "448 × 696 px (200 DPI)", "uk": "448 × 696 пікс (200 DPI)"}),
-            ((552, 864), {"en": "552 × 864 px (250 DPI)", "uk": "552 × 864 пікс (250 DPI)"}),
-            ((664, 1040), {"en": "664 × 1040 px (300 DPI)", "uk": "664 × 1040 пікс (300 DPI)"}),
+            (448, 696, 200),
+            (552, 864, 250),
+            (664, 1040, 300),
         ]
         self._populate_dimensions()
         layout.addWidget(self.dimension_combo)
@@ -184,40 +144,41 @@ class AiGeneratorTab(QWidget):
         self.set_language(self.language)
 
     def set_language(self, language: str):
-        if language not in self.strings:
-            return
+        language = ensure_language(language)
         self.language = language
-        s = self.strings[language]
-        self.prompt_label.setText(s["prompt"])
-        self.style_label.setText(s["style_hint"])
-        self.csv_button.setText(s["load_data"])
-        self.count_label.setText(s["count"])
-        self.dimensions_label.setText(s["dimensions"])
-        self.model_label.setText(s["model"])
-        self.generate_button.setText(s["generate"])
-        self.abort_button.setText(s["abort"])
-        if not self.preview_label.text():
-            self.preview_label.setText(s["no_image"])
-        elif self.preview_label.text() in (
-            self.strings["en"]["no_image"],
-            self.strings["uk"]["no_image"],
+        strings = get_section(language, "ai_generator")
+        self.strings = strings
+        self.prompt_label.setText(strings.get("prompt", ""))
+        self.style_label.setText(strings.get("style_hint", ""))
+        self.csv_button.setText(strings.get("load_data", ""))
+        self.count_label.setText(strings.get("count", ""))
+        self.dimensions_label.setText(strings.get("dimensions", ""))
+        self.model_label.setText(strings.get("model_label", strings.get("model", "")))
+        self.generate_button.setText(strings.get("generate_button", ""))
+        self.abort_button.setText(strings.get("abort_button", strings.get("abort", "")))
+        no_image = strings.get("no_image", "")
+        if not self.preview_label.text() or self.preview_label.text() in (
+            get_section("en", "ai_generator").get("no_image", ""),
+            get_section("uk", "ai_generator").get("no_image", ""),
         ):
-            self.preview_label.setText(s["no_image"])
-        self._populate_dimensions()
+            self.preview_label.setText(no_image)
+        self._populate_dimensions(strings)
 
     def load_csv(self):
         start_dir = "config" if os.path.isdir("config") else ""
         path, _ = QFileDialog.getOpenFileName(
             self,
-            self.strings[self.language]["open_dialog"],
+            self.strings.get("open_dialog", ""),
             start_dir,
             "CSV/JSON (*.csv *.json)",
         )
         if path:
             self.csv_path = path
             self.csv_button.setText(
-                self.strings[self.language]["data_loaded"].format(
-                    name=os.path.basename(path)
+                format_message(
+                    self.strings,
+                    "data_loaded",
+                    name=os.path.basename(path),
                 )
             )
 
@@ -231,8 +192,8 @@ class AiGeneratorTab(QWidget):
         except Exception:
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["count_error_title"],
-                self.strings[self.language]["count_error"],
+                self.strings.get("count_error_title", ""),
+                self.strings.get("count_error", ""),
             )
             return
 
@@ -273,14 +234,14 @@ class AiGeneratorTab(QWidget):
         if self.abort_event and self.abort_event.is_set():
             QMessageBox.information(
                 self,
-                self.strings[self.language]["aborted_title"],
-                self.strings[self.language]["aborted_message"].format(count=len(images)),
+                self.strings.get("aborted_title", ""),
+                format_message(self.strings, "aborted_message", count=len(images)),
             )
         else:
             QMessageBox.information(
                 self,
-                self.strings[self.language]["done_title"],
-                self.strings[self.language]["done_message"].format(count=len(images)),
+                self.strings.get("done_title", ""),
+                format_message(self.strings, "done_message", count=len(images)),
             )
         self._set_generation_controls(enabled=True)
         self._reset_worker_state()
@@ -288,7 +249,7 @@ class AiGeneratorTab(QWidget):
     def generation_failed(self, message: str):
         QMessageBox.critical(
             self,
-            self.strings[self.language]["fail_title"],
+            self.strings.get("fail_title", ""),
             message,
         )
         self._set_generation_controls(enabled=True)
@@ -312,30 +273,34 @@ class AiGeneratorTab(QWidget):
     def get_generated_images(self) -> list[str]:
         return self.generated_images
 
-    def _populate_dimensions(self):
+    def _populate_dimensions(self, strings: dict):
         current = self._get_selected_dimensions()
         selection_label = self.dimension_combo.currentText()
         self.dimension_combo.clear()
-        for _, labels in self.dimension_options:
-            self.dimension_combo.addItem(labels[self.language])
-        # restore selection
+
+        labels = strings.get("dimension_labels", [])
+        for idx, (width, height, dpi) in enumerate(self.dimension_options):
+            label = labels[idx] if idx < len(labels) else f"{width} × {height} px ({dpi} DPI)"
+            self.dimension_combo.addItem(label)
+
         if current:
-            for idx, (dims, _) in enumerate(self.dimension_options):
-                if dims == current:
+            for idx, (width, height, _) in enumerate(self.dimension_options):
+                if (width, height) == current:
                     self.dimension_combo.setCurrentIndex(idx)
                     break
         elif selection_label:
-            for idx, (_, labels) in enumerate(self.dimension_options):
-                if selection_label in labels.values():
+            for idx, label in enumerate(labels):
+                if selection_label == label:
                     self.dimension_combo.setCurrentIndex(idx)
                     break
 
     def _get_selected_dimensions(self):
         index = self.dimension_combo.currentIndex()
         if 0 <= index < len(self.dimension_options):
-            dims, _ = self.dimension_options[index]
-            return dims
-        return self.dimension_options[0][0]
+            width, height, _ = self.dimension_options[index]
+            return width, height
+        width, height, _ = self.dimension_options[0]
+        return width, height
 
 
 # Late imports to avoid circular dependencies in type checkers

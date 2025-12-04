@@ -4,29 +4,14 @@ from ui.ai_tab import AiGeneratorTab
 from ui.data_tab import DataTab
 from ui.export_tab import ExportTab
 from ui.render_tab import RenderTab
+from ui.locales import ensure_language, get_section
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.language = "en"
-        self.strings = {
-            "en": {
-                "title": "LS_gen — AI Generator + Card Renderer",
-                "ai": "AI Generator",
-                "render": "Card Renderer",
-                "export": "Export",
-                "data": "Data Editor",
-            },
-            "uk": {
-                "title": "LS_gen — Генератор ШІ + Рендер карток",
-                "ai": "Генератор ШІ",
-                "render": "Рендер карток",
-                "export": "Експорт",
-                "data": "Редактор даних",
-            },
-        }
+        self.language = ensure_language("en")
 
         self.setMinimumSize(400, 300)
 
@@ -60,15 +45,22 @@ class MainWindow(QMainWindow):
         return self.rendered_cards
 
     def set_language(self, language: str):
-        if language not in self.strings:
-            return
+        language = ensure_language(language)
         self.language = language
-        texts = self.strings[language]
-        self.setWindowTitle(texts["title"])
-        self.tabs.setTabText(0, texts["ai"])
-        self.tabs.setTabText(1, texts["render"])
-        self.tabs.setTabText(2, texts["export"])
-        self.tabs.setTabText(3, texts["data"])
+        app_strings = get_section(language, "app")
+        tabs_strings = get_section(language, "tabs")
+
+        title = app_strings.get("window_title")
+        if not title:
+            name = app_strings.get("name", "LS_gen")
+            version = app_strings.get("version", "")
+            title = f"{name} {version}".strip()
+
+        self.setWindowTitle(title)
+        self.tabs.setTabText(0, tabs_strings.get("ai_generator", "AI Generator"))
+        self.tabs.setTabText(1, tabs_strings.get("render", "Card Renderer"))
+        self.tabs.setTabText(2, tabs_strings.get("export", "Export"))
+        self.tabs.setTabText(3, tabs_strings.get("data_editor", "Data Editor"))
         self.ai_tab.set_language(language)
         self.render_tab.set_language(language)
         self.export_tab.set_language(language)

@@ -14,6 +14,12 @@ from PySide6.QtWidgets import (
 )
 
 from renderer.core.pdf_exporter import export_pdf_from_list
+from ui.locales import (
+    available_languages,
+    ensure_language,
+    format_message,
+    get_section,
+)
 
 
 class ExportTab(QWidget):
@@ -22,59 +28,32 @@ class ExportTab(QWidget):
     def __init__(self, get_rendered_cards, parent=None):
         super().__init__(parent)
         self.get_rendered_cards = get_rendered_cards
-        self.language = "en"
-        
-        self.strings = {
-            "en": {
-                "directory_placeholder": "Select export directory...",
-                "choose_folder": "Choose folder",
-                "export_pdf": "Export deck to PDF",
-                "error_title": "Error",
-                "render_first": "Render a card first",
-                "done_title": "Done",
-                "pdf_exported": "PDF exported: {path}",
-                "select_folder": "Select export folder",
-                "language_label": "Interface Language",
-                "english": "English",
-                "ukrainian": "Українська",
-            },
-            "uk": {
-                "directory_placeholder": "Оберіть теку для експорту...",
-                "choose_folder": "Вибрати теку",
-                "export_pdf": "Експортувати колоду у PDF",
-                "error_title": "Помилка",
-                "render_first": "Спочатку відрендерте картку",
-                "done_title": "Готово",
-                "pdf_exported": "PDF збережено: {path}",
-                "select_folder": "Виберіть теку для експорту",
-                "language_label": "Мова інтерфейсу",
-                "english": "English",
-                "ukrainian": "Українська",
-            },
-        }
+        self.language = ensure_language("en")
+        self.strings: dict = {}
+        self.available_languages = available_languages()
 
         layout = QVBoxLayout()
 
         self.export_dir = QLineEdit()
-        self.export_dir.setPlaceholderText(self.strings[self.language]["directory_placeholder"])
+        self.export_dir.setPlaceholderText("")
         layout.addWidget(self.export_dir)
 
-        self.choose_btn = QPushButton(self.strings[self.language]["choose_folder"])
+        self.choose_btn = QPushButton()
         self.choose_btn.clicked.connect(self.choose_export_folder)
         layout.addWidget(self.choose_btn)
 
-        self.export_btn = QPushButton(self.strings[self.language]["export_pdf"])
+        self.export_btn = QPushButton()
         self.export_btn.clicked.connect(self.export_pdf_deck)
         layout.addWidget(self.export_btn)
 
-        self.language_box = QGroupBox(self.strings[self.language]["language_label"])
+        self.language_box = QGroupBox()
         language_layout = QHBoxLayout()
-        self.language_en = QRadioButton(self.strings[self.language]["english"])
-        self.language_uk = QRadioButton(self.strings[self.language]["ukrainian"])
-        self.language_en.setChecked(True)
-        self.language_en.toggled.connect(self._on_language_toggle)
-        language_layout.addWidget(self.language_en)
-        language_layout.addWidget(self.language_uk)
+        self.language_buttons: dict[str, QRadioButton] = {}
+        for code in sorted(self.available_languages):
+            button = QRadioButton()
+            button.toggled.connect(lambda checked, code=code: self._on_language_toggle(code, checked))
+            self.language_buttons[code] = button
+            language_layout.addWidget(button)
         self.language_box.setLayout(language_layout)
         layout.addWidget(self.language_box)
 
@@ -85,8 +64,8 @@ class ExportTab(QWidget):
         if not rendered_cards:
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["error_title"],
-                self.strings[self.language]["render_first"],
+                self.strings.get("error_title", ""),
+                self.strings.get("render_first", ""),
             )
             return
 
@@ -98,14 +77,14 @@ class ExportTab(QWidget):
 
         QMessageBox.information(
             self,
-            self.strings[self.language]["done_title"],
-            self.strings[self.language]["pdf_exported"].format(path=out),
+            self.strings.get("done_title", ""),
+            format_message(self.strings, "pdf_exported", path=out),
         )
 
     def choose_export_folder(self):
         start_dir = self.export_dir.text() or "export"
         folder = QFileDialog.getExistingDirectory(
-            self, self.strings[self.language]["select_folder"], start_dir
+            self, self.strings.get("select_folder", ""), start_dir
         )
         if folder:
             self.export_dir.setText(folder)
@@ -114,34 +93,28 @@ class ExportTab(QWidget):
         return self.export_dir.text().strip()
 
     def set_language(self, language: str):
-        if language not in self.strings:
-            return
+        language = ensure_language(language)
         self.language = language
-        strings = self.strings[language]
-        self.export_dir.setPlaceholderText(strings["directory_placeholder"])
-        self.choose_btn.setText(strings["choose_folder"])
-        self.export_btn.setText(strings["export_pdf"])
-        self.current_language = "Українська" if language == "uk" else "English"
+        strings = get_section(language, "export")
+        self.strings = strings
 
-        # Update group box and buttons without retriggering signal
-        self.language_en.blockSignals(True)
-        self.language_uk.blockSignals(True)
-        self.language_en.setText(strings["english"])
-        self.language_uk.setText(strings["ukrainian"])
-        if language == "en":
-            self.language_en.setChecked(True)
-        else:
-            self.language_uk.setChecked(True)
-        self.language_en.blockSignals(False)
-        self.language_uk.blockSignals(False)
-        self.language_box.setTitle(strings["language_label"])
+        self.export_dir.setPlaceholderText(strings.get("directory_placeholder", ""))
+        self.choose_btn.setText(strings.get("choose_folder", ""))
+        self.export_btn.setText(strings.get("export_pdf", ""))
+        self.language_box.setTitle(strings.get("language_label", ""))
 
-    def _on_language_toggle(self, checked: bool):
+        language_labels = strings.get("languages", self.available_languages)
+        for code, button in self.language_buttons.items():
+            button.blockSignals(True)
+            button.setText(language_labels.get(code, self.available_languages.get(code, code)))
+            button.setChecked(code == language)
+            button.blockSignals(False)
+
+    def _on_language_toggle(self, selected_language: str, checked: bool):
         if not checked:
             return
-        selected = "en" if self.language_en.isChecked() else "uk"
-        if selected != self.language:
-            self.set_language(selected)
-            self.languageChanged.emit(selected)
-            self.current_language = "Українська" if selected == "uk" else "English"
+        selected_language = ensure_language(selected_language)
+        if selected_language != self.language:
+            self.set_language(selected_language)
+            self.languageChanged.emit(selected_language)
     

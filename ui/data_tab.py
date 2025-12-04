@@ -7,7 +7,6 @@ from PySide6.QtGui import QGuiApplication, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
-    QLabel,
     QMessageBox,
     QPushButton,
     QTableWidget,
@@ -73,45 +72,8 @@ class DataEditorWidget(QWidget):
         self.translation_error_shown = False
         self.json_prefix: dict | None = None
 
-        self.language = "en"
-        self.strings = {
-            "en": {
-                "load": "Load CSV/JSON",
-                "save": "Save CSV/JSON",
-                "open_title": "Open CSV or JSON",
-                "unsupported_title": "Unsupported",
-                "unsupported_open": "Only CSV or JSON files are supported",
-                "unsupported_save": "Please use .csv or .json extension",
-                "no_data_title": "No data",
-                "no_data_body": "Nothing to save",
-                "error_title": "Error",
-                "save_title": "Save CSV or JSON",
-                "load_failed": "Failed to load file: {error}",
-                "save_failed": "Failed to save file: {error}",
-                "saved_title": "Saved",
-                "saved_message": "Data saved to {path}",
-                "translation_title": "Translation unavailable",
-                "translation_body": "Automatic translation failed to start. Please ensure translation dependencies are installed.\n\nDetails: {details}",
-            },
-            "uk": {
-                "load": "Завантажити CSV/JSON",
-                "save": "Зберегти CSV/JSON",
-                "open_title": "Відкрити CSV або JSON",
-                "unsupported_title": "Непідтримувано",
-                "unsupported_open": "Підтримуються лише файли CSV або JSON",
-                "unsupported_save": "Будь ласка, використовуйте розширення .csv або .json",
-                "no_data_title": "Немає даних",
-                "no_data_body": "Нічого зберігати",
-                "error_title": "Помилка",
-                "save_title": "Зберегти CSV або JSON",
-                "load_failed": "Не вдалося завантажити файл: {error}",
-                "save_failed": "Не вдалося зберегти файл: {error}",
-                "saved_title": "Збережено",
-                "saved_message": "Дані збережено до {path}",
-                "translation_title": "Переклад недоступний",
-                "translation_body": "Не вдалося запустити автоматичний переклад. Переконайтеся, що залежності встановлені.\n\nПодробиці: {details}",
-            },
-        }
+        self.language = ensure_language("en")
+        self.strings: dict = {}
 
         layout = QVBoxLayout()
         button_row = QHBoxLayout()
@@ -134,16 +96,16 @@ class DataEditorWidget(QWidget):
         self.set_language(self.language)
 
     def set_language(self, language: str):
-        if language not in self.strings:
-            return
+        language = ensure_language(language)
         self.language = language
-        self.load_btn.setText(self.strings[language]["load"])
-        self.save_btn.setText(self.strings[language]["save"])
+        self.strings = get_section(language, "data_editor")
+        self.load_btn.setText(self.strings.get("load", ""))
+        self.save_btn.setText(self.strings.get("save", ""))
 
     def load_file(self):
         path, _ = QFileDialog.getOpenFileName(
             self,
-            self.strings[self.language]["open_title"],
+            self.strings.get("open_title", ""),
             "config",
             "CSV/JSON (*.csv *.json)",
         )
@@ -172,23 +134,27 @@ class DataEditorWidget(QWidget):
             else:
                 QMessageBox.warning(
                     self,
-                    self.strings[self.language]["unsupported_title"],
-                    self.strings[self.language]["unsupported_open"],
+                    self.strings.get("unsupported_title", ""),
+                    self.strings.get("unsupported_open", ""),
                 )
                 return
         except Exception as exc:
             QMessageBox.critical(
                 self,
-                self.strings[self.language]["error_title"],
-                self.strings[self.language]["load_failed"].format(error=exc),
+                self.strings.get("error_title", ""),
+                format_message(self.strings, "load_failed", error=exc),
             )
             return
 
         if not isinstance(data, list):
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["error_title"],
-                self.strings[self.language]["load_failed"].format(error="Loaded data is not a list of rows"),
+                self.strings.get("error_title", ""),
+                format_message(
+                    self.strings,
+                    "load_failed",
+                    error="Loaded data is not a list of rows",
+                ),
             )
             return
 
@@ -199,14 +165,14 @@ class DataEditorWidget(QWidget):
         if not self.headers:
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["no_data_title"],
-                self.strings[self.language]["no_data_body"],
+                self.strings.get("no_data_title", ""),
+                self.strings.get("no_data_body", ""),
             )
             return
         default_dir = os.path.dirname(self.current_path) if self.current_path else "config"
         path, _ = QFileDialog.getSaveFileName(
             self,
-            self.strings[self.language]["save_title"],
+            self.strings.get("save_title", ""),
             default_dir,
             "CSV/JSON (*.csv *.json)",
         )
@@ -232,21 +198,21 @@ class DataEditorWidget(QWidget):
             else:
                 QMessageBox.warning(
                     self,
-                    self.strings[self.language]["unsupported_title"],
-                    self.strings[self.language]["unsupported_save"],
+                    self.strings.get("unsupported_title", ""),
+                    self.strings.get("unsupported_save", ""),
                 )
                 return
         except Exception as exc:
             QMessageBox.critical(
                 self,
-                self.strings[self.language]["error_title"],
-                self.strings[self.language]["save_failed"].format(error=exc),
+                self.strings.get("error_title", ""),
+                format_message(self.strings, "save_failed", error=exc),
             )
             return
         QMessageBox.information(
             self,
-            self.strings[self.language]["saved_title"],
-            self.strings[self.language]["saved_message"].format(path=path),
+            self.strings.get("saved_title", ""),
+            format_message(self.strings, "saved_message", path=path),
         )
 
     def _populate_table(self, data):
@@ -343,8 +309,8 @@ class DataEditorWidget(QWidget):
             if not self.translation_error_shown:
                 QMessageBox.warning(
                     self,
-                    self.strings[self.language]["translation_title"],
-                    self.strings[self.language]["translation_body"].format(details=exc),
+                    self.strings.get("translation_title", ""),
+                    format_message(self.strings, "translation_body", details=exc),
                 )
                 self.translation_error_shown = True
             return
