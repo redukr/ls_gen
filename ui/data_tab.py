@@ -79,8 +79,10 @@ class DataEditorWidget(QWidget):
         layout = QVBoxLayout()
         button_row = QHBoxLayout()
         self.load_btn = QPushButton()
+        self.translate_btn = QPushButton()
         self.save_btn = QPushButton()
         button_row.addWidget(self.load_btn)
+        button_row.addWidget(self.translate_btn)
         button_row.addWidget(self.save_btn)
         layout.addLayout(button_row)
 
@@ -93,6 +95,7 @@ class DataEditorWidget(QWidget):
 
         self.load_btn.clicked.connect(self.load_file)
         self.save_btn.clicked.connect(self.save_file)
+        self.translate_btn.clicked.connect(self.translate_names)
 
         self.set_language(self.language)
 
@@ -102,6 +105,7 @@ class DataEditorWidget(QWidget):
         self.strings = get_section(language, "data_editor")
         self.load_btn.setText(self.strings.get("load", ""))
         self.save_btn.setText(self.strings.get("save", ""))
+        self.translate_btn.setText(self.strings.get("translate", ""))
 
     def load_file(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -237,7 +241,6 @@ class DataEditorWidget(QWidget):
         self.table.setSortingEnabled(True)
         self.table.resizeColumnsToContents()
         self.updating = False
-        self._auto_translate_missing()
 
     def _collect_headers(self, data):
         headers: list[str] = []
@@ -275,19 +278,12 @@ class DataEditorWidget(QWidget):
                 item.setData(Qt.UserRole + 1, "")
             self.table.resizeColumnsToContents()
             return
-        if header == "name":
-            self._update_translation_for_row(row)
         self.table.resizeColumnsToContents()
 
-    def _auto_translate_missing(self):
+    def translate_names(self):
         if "name" not in self.headers or "name_en" not in self.headers:
             return
         for row in range(self.table.rowCount()):
-            target_item = self.table.item(row, self.headers.index("name_en"))
-            if target_item and target_item.data(Qt.UserRole):
-                continue
-            if target_item and target_item.text().strip():
-                continue
             self._update_translation_for_row(row)
 
     def _update_translation_for_row(self, row):
