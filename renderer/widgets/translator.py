@@ -15,10 +15,10 @@ class OfflineTranslator:
         if self._translator is None:
             os.makedirs(self.model_dir, exist_ok=True)
             model = AutoModelForSeq2SeqLM.from_pretrained(
-                "Helsinki-NLP/opus-mt-uk-en", cache_dir=str(self.model_dir)
+                "opus-mt-uk-en", cache_dir=str(self.model_dir)
             )
             tokenizer = AutoTokenizer.from_pretrained(
-                "Helsinki-NLP/opus-mt-uk-en", cache_dir=str(self.model_dir)
+                "opus-mt-uk-en", cache_dir=str(self.model_dir)
             )
             self._translator = pipeline(
                 "translation",
