@@ -1,3 +1,4 @@
+import json
 import os
 
 from PySide6.QtCore import Signal
@@ -41,6 +42,25 @@ class ExportTab(QWidget):
         self.choose_btn = QPushButton()
         self.choose_btn.clicked.connect(self.choose_export_folder)
         layout.addWidget(self.choose_btn)
+
+        self.settings_dir = QLineEdit()
+        self.settings_dir.setPlaceholderText("")
+        layout.addWidget(self.settings_dir)
+
+        self.choose_settings_btn = QPushButton()
+        self.choose_settings_btn.clicked.connect(self.choose_settings_folder)
+        layout.addWidget(self.choose_settings_btn)
+
+        settings_row = QHBoxLayout()
+        self.load_settings_btn = QPushButton()
+        self.load_settings_btn.clicked.connect(self.load_settings)
+        settings_row.addWidget(self.load_settings_btn)
+
+        self.save_settings_btn = QPushButton()
+        self.save_settings_btn.clicked.connect(self.save_settings)
+        settings_row.addWidget(self.save_settings_btn)
+
+        layout.addLayout(settings_row)
 
         self.export_btn = QPushButton()
         self.export_btn.clicked.connect(self.export_pdf_deck)
@@ -92,6 +112,82 @@ class ExportTab(QWidget):
     def get_export_dir(self) -> str:
         return self.export_dir.text().strip()
 
+    def _gather_settings(self) -> dict:
+        return {
+            "language": self.language,
+            "export_dir": self.get_export_dir(),
+            "settings_dir": self.get_settings_dir(),
+        }
+
+    def get_settings_dir(self) -> str:
+        return self.settings_dir.text().strip()
+
+    def save_settings(self):
+        start_dir = self.get_settings_dir() or self.get_export_dir() or "config"
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            self.strings.get("save_settings", ""),
+            start_dir,
+            "JSON (*.json)",
+        )
+        if not path:
+            return
+        if not path.lower().endswith(".json"):
+            path += ".json"
+        self.settings_dir.setText(os.path.dirname(path))
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(self._gather_settings(), f, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            self._emit_error(
+                self.strings.get("error_title", ""),
+                format_message(self.strings, "save_failed", error=exc),
+            )
+            return
+        self._emit_error(
+            self.strings.get("done_title", ""),
+            format_message(self.strings, "settings_saved", path=path),
+            level="info",
+        )
+
+    def load_settings(self):
+        start_dir = self.get_settings_dir() or self.get_export_dir() or "config"
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            self.strings.get("load_settings", ""),
+            start_dir,
+            "JSON (*.json)",
+        )
+        if not path:
+            return
+        self.settings_dir.setText(os.path.dirname(path))
+        try:
+            with open(path, encoding="utf-8") as f:
+                loaded = json.load(f)
+            if not isinstance(loaded, dict):
+                raise ValueError("Settings file must contain a JSON object")
+        except Exception as exc:
+            self._emit_error(
+                self.strings.get("error_title", ""),
+                format_message(self.strings, "load_failed", error=exc),
+            )
+            return
+
+        self.export_dir.setText(loaded.get("export_dir", ""))
+        if "settings_dir" in loaded:
+            self.settings_dir.setText(str(loaded.get("settings_dir") or ""))
+        loaded_language = loaded.get("language")
+        if loaded_language:
+            loaded_language = ensure_language(loaded_language)
+            if loaded_language != self.language:
+                self.set_language(loaded_language)
+                self.languageChanged.emit(loaded_language)
+        self._emit_error(
+            self.strings.get("done_title", ""),
+            format_message(self.strings, "settings_loaded", path=path),
+            level="info",
+        )
+
     def set_language(self, language: str):
         language = ensure_language(language)
         self.language = language
@@ -99,7 +195,11 @@ class ExportTab(QWidget):
         self.strings = strings
 
         self.export_dir.setPlaceholderText(strings.get("directory_placeholder", ""))
+        self.settings_dir.setPlaceholderText(strings.get("settings_directory_placeholder", ""))
         self.choose_btn.setText(strings.get("choose_folder", ""))
+        self.choose_settings_btn.setText(strings.get("choose_settings_folder", ""))
+        self.load_settings_btn.setText(strings.get("load_settings", ""))
+        self.save_settings_btn.setText(strings.get("save_settings", ""))
         self.export_btn.setText(strings.get("export_pdf", ""))
         self.language_box.setTitle(strings.get("language_label", ""))
 
@@ -121,4 +221,12 @@ class ExportTab(QWidget):
     def _emit_error(self, title: str, message: str, level: str = "error"):
         if self.error_notifier:
             self.error_notifier.emit_error(title, message, level)
+
+    def choose_settings_folder(self):
+        start_dir = self.get_settings_dir() or self.get_export_dir() or "config"
+        folder = QFileDialog.getExistingDirectory(
+            self, self.strings.get("choose_settings_folder", ""), start_dir
+        )
+        if folder:
+            self.settings_dir.setText(folder)
     
