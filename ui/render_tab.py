@@ -3,7 +3,6 @@ import os
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -20,10 +19,11 @@ from ui.locales import ensure_language, format_message, get_section
 class RenderTab(QWidget):
     cardsRendered = Signal(list)
 
-    def __init__(self, get_generated_images, get_export_dir, parent=None):
+    def __init__(self, get_generated_images, get_export_dir, parent=None, error_notifier=None):
         super().__init__(parent)
         self.get_generated_images = get_generated_images
         self.get_export_dir = get_export_dir
+        self.error_notifier = error_notifier
 
         self.language = ensure_language("en")
         self.strings: dict = {}
@@ -67,10 +67,10 @@ class RenderTab(QWidget):
     def apply_ai_to_card(self):
         generated_images = self.get_generated_images()
         if not generated_images:
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("no_images_title", ""),
                 self.strings.get("no_images_message", ""),
+                level="warning",
             )
             return
 
@@ -80,10 +80,10 @@ class RenderTab(QWidget):
 
     def render_card(self):
         if not self.current_art:
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("error_title", ""),
                 self.strings.get("apply_first", ""),
+                level="warning",
             )
             return
 
@@ -106,10 +106,10 @@ class RenderTab(QWidget):
         save_path = os.path.join(export_dir, "rendered_card.png")
         img.save(save_path)
 
-        QMessageBox.information(
-            self,
+        self._emit_error(
             self.strings.get("done_title", ""),
             format_message(self.strings, "done_message", path=save_path),
+            level="info",
         )
 
         self.rendered_cards = [save_path]
@@ -125,3 +125,7 @@ class RenderTab(QWidget):
         self.strings = strings
         self.apply_ai_button.setText(strings.get("apply_ai", ""))
         self.render_button.setText(strings.get("render_card", ""))
+
+    def _emit_error(self, title: str, message: str, level: str = "error"):
+        if self.error_notifier:
+            self.error_notifier.emit_error(title, message, level)

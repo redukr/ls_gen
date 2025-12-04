@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLineEdit,
-    QMessageBox,
     QPushButton,
     QRadioButton,
     QVBoxLayout,
@@ -25,9 +24,10 @@ from ui.locales import (
 class ExportTab(QWidget):
     languageChanged = Signal(str)
 
-    def __init__(self, get_rendered_cards, parent=None):
+    def __init__(self, get_rendered_cards, parent=None, error_notifier=None):
         super().__init__(parent)
         self.get_rendered_cards = get_rendered_cards
+        self.error_notifier = error_notifier
         self.language = ensure_language("en")
         self.strings: dict = {}
         self.available_languages = available_languages()
@@ -62,10 +62,10 @@ class ExportTab(QWidget):
     def export_pdf_deck(self):
         rendered_cards = self.get_rendered_cards()
         if not rendered_cards:
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("error_title", ""),
                 self.strings.get("render_first", ""),
+                level="warning",
             )
             return
 
@@ -75,10 +75,10 @@ class ExportTab(QWidget):
         out = os.path.join(export_path, "deck.pdf")
         export_pdf_from_list(rendered_cards, out)
 
-        QMessageBox.information(
-            self,
+        self._emit_error(
             self.strings.get("done_title", ""),
             format_message(self.strings, "pdf_exported", path=out),
+            level="info",
         )
 
     def choose_export_folder(self):
@@ -117,4 +117,8 @@ class ExportTab(QWidget):
         if selected_language != self.language:
             self.set_language(selected_language)
             self.languageChanged.emit(selected_language)
+
+    def _emit_error(self, title: str, message: str, level: str = "error"):
+        if self.error_notifier:
+            self.error_notifier.emit_error(title, message, level)
     

@@ -7,7 +7,6 @@ from PySide6.QtGui import QGuiApplication, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
-    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -64,7 +63,7 @@ class DataTableWidget(QTableWidget):
 
 
 class DataEditorWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, error_notifier=None):
         super().__init__(parent)
         self.translator = OfflineTranslator()
         self.headers: list[str] = []
@@ -72,6 +71,7 @@ class DataEditorWidget(QWidget):
         self.updating = False
         self.translation_error_shown = False
         self.json_prefix: dict | None = None
+        self.error_notifier = error_notifier
 
         self.language = ensure_language("en")
         self.strings: dict = {}
@@ -133,29 +133,29 @@ class DataEditorWidget(QWidget):
                         data = loaded
                         self.json_prefix = None
             else:
-                QMessageBox.warning(
-                    self,
+                self._emit_error(
                     self.strings.get("unsupported_title", ""),
                     self.strings.get("unsupported_open", ""),
+                    level="warning",
                 )
                 return
         except Exception as exc:
-            QMessageBox.critical(
-                self,
+            self._emit_error(
                 self.strings.get("error_title", ""),
                 format_message(self.strings, "load_failed", error=exc),
+                level="error",
             )
             return
 
         if not isinstance(data, list):
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("error_title", ""),
                 format_message(
                     self.strings,
                     "load_failed",
                     error="Loaded data is not a list of rows",
                 ),
+                level="warning",
             )
             return
 
@@ -164,10 +164,10 @@ class DataEditorWidget(QWidget):
 
     def save_file(self):
         if not self.headers:
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("no_data_title", ""),
                 self.strings.get("no_data_body", ""),
+                level="warning",
             )
             return
         default_dir = os.path.dirname(self.current_path) if self.current_path else "config"
@@ -197,23 +197,23 @@ class DataEditorWidget(QWidget):
                         payload = data
                     json.dump(payload, f, ensure_ascii=False, indent=2)
             else:
-                QMessageBox.warning(
-                    self,
+                self._emit_error(
                     self.strings.get("unsupported_title", ""),
                     self.strings.get("unsupported_save", ""),
+                    level="warning",
                 )
                 return
         except Exception as exc:
-            QMessageBox.critical(
-                self,
+            self._emit_error(
                 self.strings.get("error_title", ""),
                 format_message(self.strings, "save_failed", error=exc),
+                level="error",
             )
             return
-        QMessageBox.information(
-            self,
+        self._emit_error(
             self.strings.get("saved_title", ""),
             format_message(self.strings, "saved_message", path=path),
+            level="info",
         )
 
     def _populate_table(self, data):
@@ -308,10 +308,10 @@ class DataEditorWidget(QWidget):
             translation = self.translator.translate(current_name)
         except Exception as exc:
             if not self.translation_error_shown:
-                QMessageBox.warning(
-                    self,
+                self._emit_error(
                     self.strings.get("translation_title", ""),
                     format_message(self.strings, "translation_body", details=exc),
+                    level="warning",
                 )
                 self.translation_error_shown = True
             return
@@ -326,11 +326,16 @@ class DataEditorWidget(QWidget):
             self.updating = False
 
 
+    def _emit_error(self, title: str, message: str, level: str = "error"):
+        if self.error_notifier:
+            self.error_notifier.emit_error(title, message, level)
+
+
 class DataTab(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, error_notifier=None):
         super().__init__(parent)
         layout = QVBoxLayout()
-        self.data_editor = DataEditorWidget()
+        self.data_editor = DataEditorWidget(error_notifier=error_notifier)
         layout.addWidget(self.data_editor)
         self.setLayout(layout)
 
