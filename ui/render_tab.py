@@ -14,6 +14,7 @@ from renderer.core.renderer import CardRenderer
 from renderer.core.paths import ABSOLUTE_PATH
 from renderer.widgets.drag_canvas import DragCanvas
 from renderer.widgets.property_panel import PropertyPanel
+from ui.locales import ensure_language, format_message, get_section
 
 
 class RenderTab(QWidget):
@@ -24,33 +25,8 @@ class RenderTab(QWidget):
         self.get_generated_images = get_generated_images
         self.get_export_dir = get_export_dir
 
-        self.language = "en"
-        self.strings = {
-            "en": {
-                "apply_ai": "Apply AI Image",
-                "render_card": "Render Card",
-                "no_images_title": "No images",
-                "no_images_message": "Please generate AI images first",
-                "error_title": "Error",
-                "apply_first": "Apply AI image first",
-                "default_title": "Generated Unit",
-                "default_desc": "AI-generated card",
-                "done_title": "Done",
-                "done_message": "Card saved: {path}",
-            },
-            "uk": {
-                "apply_ai": "Додати AI-зображення",
-                "render_card": "Відрендерити картку",
-                "no_images_title": "Немає зображень",
-                "no_images_message": "Спочатку згенеруйте AI-зображення",
-                "error_title": "Помилка",
-                "apply_first": "Спочатку додайте AI-зображення",
-                "default_title": "Згенерований юніт",
-                "default_desc": "Картка, згенерована ШІ",
-                "done_title": "Готово",
-                "done_message": "Картку збережено: {path}",
-            },
-        }
+        self.language = ensure_language("en")
+        self.strings: dict = {}
 
         self.rendered_cards: list[str] = []
         self.current_art: str | None = None
@@ -93,8 +69,8 @@ class RenderTab(QWidget):
         if not generated_images:
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["no_images_title"],
-                self.strings[self.language]["no_images_message"],
+                self.strings.get("no_images_title", ""),
+                self.strings.get("no_images_message", ""),
             )
             return
 
@@ -106,8 +82,8 @@ class RenderTab(QWidget):
         if not self.current_art:
             QMessageBox.warning(
                 self,
-                self.strings[self.language]["error_title"],
-                self.strings[self.language]["apply_first"],
+                self.strings.get("error_title", ""),
+                self.strings.get("apply_first", ""),
             )
             return
 
@@ -117,8 +93,8 @@ class RenderTab(QWidget):
         # minimal card data
         card_data = {
             "img": self.current_art,
-            "title": self.strings[self.language]["default_title"],
-            "description": self.strings[self.language]["default_desc"],
+            "title": self.strings.get("default_title", "Generated Unit"),
+            "description": self.strings.get("default_desc", "AI-generated card"),
             "atk": 3,
             "def": 2,
             "stb": 1
@@ -132,8 +108,8 @@ class RenderTab(QWidget):
 
         QMessageBox.information(
             self,
-            self.strings[self.language]["done_title"],
-            self.strings[self.language]["done_message"].format(path=save_path),
+            self.strings.get("done_title", ""),
+            format_message(self.strings, "done_message", path=save_path),
         )
 
         self.rendered_cards = [save_path]
@@ -143,9 +119,9 @@ class RenderTab(QWidget):
         return self.rendered_cards
 
     def set_language(self, language: str):
-        if language not in self.strings:
-            return
+        language = ensure_language(language)
         self.language = language
-        s = self.strings[language]
-        self.apply_ai_button.setText(s["apply_ai"])
-        self.render_button.setText(s["render_card"])
+        strings = get_section(language, "render_tab")
+        self.strings = strings
+        self.apply_ai_button.setText(strings.get("apply_ai", ""))
+        self.render_button.setText(strings.get("render_card", ""))

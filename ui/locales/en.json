@@ -4,19 +4,14 @@
     },
     "app": {
         "name": "LS_gen_01",
-        "version": "1.0.0"
-    },
-    "menu": {
-        "file": "File",
-        "edit": "Edit",
-        "view": "View",
-        "help": "Help"
+        "version": "1.0.0",
+        "window_title": "LS_gen — AI Generator + Card Renderer"
     },
     "tabs": {
         "ai_generator": "AI Generator",
-        "card_editor": "Card Editor",
-        "deck_viewer": "Deck Viewer",
-        "export": "Export"
+        "render": "Card Renderer",
+        "export": "Export",
+        "data_editor": "Data Editor"
     },
     "card_type": {
         "unit": "Unit",
@@ -55,7 +50,28 @@
         "preview": "Preview:",
         "no_image": "No image",
         "success_msg": "Generated {count} images",
-        "aborted_msg": "Generation aborted after {count} images"
+        "aborted_msg": "Generation aborted after {count} images",
+        "prompt": "Prompt:",
+        "style_hint": "Style hint:",
+        "load_data": "Load CSV/JSON",
+        "dimensions": "Dimensions:",
+        "model_label": "Model name:",
+        "generate_button": "Generate Images",
+        "abort_button": "Abort",
+        "open_dialog": "Select CSV or JSON",
+        "data_loaded": "Data Loaded: {name}",
+        "count_error_title": "Error",
+        "count_error": "Count must be integer",
+        "aborted_title": "Aborted",
+        "aborted_message": "Generation aborted after {count} images",
+        "done_title": "Done",
+        "done_message": "Generated {count} images",
+        "fail_title": "Generation failed",
+        "dimension_labels": [
+            "448 × 696 px (200 DPI)",
+            "552 × 864 px (250 DPI)",
+            "664 × 1040 px (300 DPI)"
+        ]
     },
     "card_editor": {
         "title": "Card Editor",
@@ -92,11 +108,52 @@
         "select_all": "Select All",
         "deselect_all": "Deselect All",
         "export_images": "Export Images",
-        "export_pdf": "Export PDF",
-        "select_folder": "Select folder to save",
+        "export_pdf": "Export deck to PDF",
+        "select_folder": "Select export folder",
         "success_msg": "Exported to {path}",
         "no_cards_selected": "No cards selected",
-        "confirm_overwrite": "Overwrite existing files?"
+        "confirm_overwrite": "Overwrite existing files?",
+        "directory_placeholder": "Select export directory...",
+        "choose_folder": "Choose folder",
+        "error_title": "Error",
+        "render_first": "Render a card first",
+        "done_title": "Done",
+        "pdf_exported": "PDF exported: {path}",
+        "language_label": "Interface Language",
+        "languages": {
+            "en": "English",
+            "uk": "Українська"
+        }
+    },
+    "render_tab": {
+        "apply_ai": "Apply AI Image",
+        "render_card": "Render Card",
+        "no_images_title": "No images",
+        "no_images_message": "Please generate AI images first",
+        "error_title": "Error",
+        "apply_first": "Apply AI image first",
+        "default_title": "Generated Unit",
+        "default_desc": "AI-generated card",
+        "done_title": "Done",
+        "done_message": "Card saved: {path}"
+    },
+    "data_editor": {
+        "load": "Load CSV/JSON",
+        "save": "Save CSV/JSON",
+        "open_title": "Open CSV or JSON",
+        "unsupported_title": "Unsupported",
+        "unsupported_open": "Only CSV or JSON files are supported",
+        "unsupported_save": "Please use .csv or .json extension",
+        "no_data_title": "No data",
+        "no_data_body": "Nothing to save",
+        "error_title": "Error",
+        "save_title": "Save CSV or JSON",
+        "load_failed": "Failed to load file: {error}",
+        "save_failed": "Failed to save file: {error}",
+        "saved_title": "Saved",
+        "saved_message": "Data saved to {path}",
+        "translation_title": "Translation unavailable",
+        "translation_body": "Automatic translation failed to start. Please ensure translation dependencies are installed.\n\nDetails: {details}"
     },
     "template_editor": {
         "title": "Template Editor",
