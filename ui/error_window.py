@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -26,9 +27,13 @@ class ErrorLogWidget(QWidget):
         self.table.setHorizontalHeaderLabels(["", "", "", ""])
         header = self.table.horizontalHeader()
         header.setStretchLastSection(True)
+        self.table.itemSelectionChanged.connect(self.update_copy_button_state)
         layout.addWidget(self.table)
 
         controls = QHBoxLayout()
+        self.copy_button = QPushButton()
+        self.copy_button.clicked.connect(self.copy_selected)
+        controls.addWidget(self.copy_button)
         self.clear_button = QPushButton()
         self.clear_button.clicked.connect(self.clear_entries)
         controls.addWidget(self.clear_button)
@@ -52,7 +57,10 @@ class ErrorLogWidget(QWidget):
         for idx, text in enumerate(headers):
             self.table.horizontalHeaderItem(idx).setText(text)
 
+        self.copy_button.setText(self.strings.get("copy", ""))
         self.clear_button.setText(self.strings.get("clear", ""))
+
+        self.update_copy_button_state()
 
     def add_entry(self, title: str, message: str, level: str = "error"):
         row = self.table.rowCount()
@@ -75,6 +83,39 @@ class ErrorLogWidget(QWidget):
 
     def clear_entries(self):
         self.table.setRowCount(0)
+        self.update_copy_button_state()
+
+    def copy_selected(self):
+        rows = sorted({index.row() for index in self.table.selectedIndexes()})
+        if not rows:
+            return
+
+        clipboard = QGuiApplication.clipboard()
+        entries: list[str] = []
+        for row in rows:
+            timestamp = self.table.item(row, 0)
+            level = self.table.item(row, 1)
+            title = self.table.item(row, 2)
+            message = self.table.item(row, 3)
+
+            formatted = " | ".join(
+                filter(
+                    None,
+                    (
+                        timestamp.text() if timestamp else "",
+                        level.text() if level else "",
+                        title.text() if title else "",
+                        message.text() if message else "",
+                    ),
+                )
+            )
+            entries.append(formatted)
+
+        clipboard.setText("\n".join(entries))
+
+    def update_copy_button_state(self):
+        has_selection = bool(self.table.selectedIndexes())
+        self.copy_button.setEnabled(has_selection)
 
 
 class ErrorLogDialog(QDialog):
