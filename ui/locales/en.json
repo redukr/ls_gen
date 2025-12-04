@@ -11,7 +11,8 @@
         "ai_generator": "AI Generator",
         "render": "Card Renderer",
         "export": "Export",
-        "data_editor": "Data Editor"
+        "data_editor": "Data Editor",
+        "error_log": "Error Log"
     },
     "card_type": {
         "unit": "Unit",
@@ -72,6 +73,15 @@
             "552 × 864 px (250 DPI)",
             "664 × 1040 px (300 DPI)"
         ]
+    },
+    "error_log": {
+        "tab_title": "Error Log",
+        "window_title": "Application Errors",
+        "clear": "Clear",
+        "timestamp": "Timestamp",
+        "level": "Level",
+        "title": "Title",
+        "details": "Details"
     },
     "card_editor": {
         "title": "Card Editor",

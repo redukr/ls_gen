@@ -1,10 +1,19 @@
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from ui.ai_tab import AiGeneratorTab
 from ui.data_tab import DataTab
 from ui.export_tab import ExportTab
+from ui.error_window import ErrorLogWidget
 from ui.render_tab import RenderTab
 from ui.locales import ensure_language, get_section
+
+
+class ErrorNotifier(QObject):
+    errorOccurred = Signal(str, str, str)
+
+    def emit_error(self, title: str, message: str, level: str = "error"):
+        self.errorOccurred.emit(title, message, level)
 
 
 class MainWindow(QMainWindow):
@@ -13,6 +22,8 @@ class MainWindow(QMainWindow):
 
         self.language = ensure_language("en")
 
+        self.error_notifier = ErrorNotifier()
+
         self.setMinimumSize(400, 300)
 
         self.tabs = QTabWidget()
@@ -20,14 +31,17 @@ class MainWindow(QMainWindow):
 
         self.rendered_cards: list[str] = []
 
-        self.ai_tab = AiGeneratorTab()
-        self.export_tab = ExportTab(self.get_rendered_cards)
+        self.ai_tab = AiGeneratorTab(error_notifier=self.error_notifier)
+        self.export_tab = ExportTab(self.get_rendered_cards, error_notifier=self.error_notifier)
         self.export_tab.languageChanged.connect(self.on_language_changed)
         self.render_tab = RenderTab(
             get_generated_images=self.ai_tab.get_generated_images,
             get_export_dir=self.export_tab.get_export_dir,
+            error_notifier=self.error_notifier,
         )
-        self.data_tab = DataTab()
+        self.data_tab = DataTab(error_notifier=self.error_notifier)
+        self.error_log_tab = ErrorLogWidget()
+        self.error_notifier.errorOccurred.connect(self.error_log_tab.add_entry)
 
         self.render_tab.cardsRendered.connect(self._update_rendered_cards)
 
@@ -35,6 +49,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.render_tab, "")
         self.tabs.addTab(self.export_tab, "")
         self.tabs.addTab(self.data_tab, "")
+        self.tabs.addTab(self.error_log_tab, "")
 
         self.set_language(self.language)
 
@@ -49,6 +64,7 @@ class MainWindow(QMainWindow):
         self.language = language
         app_strings = get_section(language, "app")
         tabs_strings = get_section(language, "tabs")
+        error_strings = get_section(language, "error_log")
 
         title = app_strings.get("window_title")
         if not title:
@@ -61,10 +77,12 @@ class MainWindow(QMainWindow):
         self.tabs.setTabText(1, tabs_strings.get("render", "Card Renderer"))
         self.tabs.setTabText(2, tabs_strings.get("export", "Export"))
         self.tabs.setTabText(3, tabs_strings.get("data_editor", "Data Editor"))
+        self.tabs.setTabText(4, error_strings.get("tab_title", "Errors"))
         self.ai_tab.set_language(language)
         self.render_tab.set_language(language)
         self.export_tab.set_language(language)
         self.data_tab.set_language(language)
+        self.error_log_tab.set_language(language)
 
     def on_language_changed(self, language: str):
         self.set_language(language)

@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
@@ -63,8 +62,9 @@ class GenerationWorker(QObject):
 class AiGeneratorTab(QWidget):
     imagesGenerated = Signal(list)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, error_notifier=None):
         super().__init__(parent)
+        self.error_notifier = error_notifier
 
         self.language = ensure_language("en")
         self.strings: dict = {}
@@ -190,10 +190,10 @@ class AiGeneratorTab(QWidget):
         try:
             count = int(self.count_edit.text())
         except Exception:
-            QMessageBox.warning(
-                self,
+            self._emit_error(
                 self.strings.get("count_error_title", ""),
                 self.strings.get("count_error", ""),
+                level="warning",
             )
             return
 
@@ -232,25 +232,25 @@ class AiGeneratorTab(QWidget):
             self.preview_label.setPixmap(pixmap.scaled(256, 256, Qt.KeepAspectRatio))
 
         if self.abort_event and self.abort_event.is_set():
-            QMessageBox.information(
-                self,
+            self._emit_error(
                 self.strings.get("aborted_title", ""),
                 format_message(self.strings, "aborted_message", count=len(images)),
+                level="info",
             )
         else:
-            QMessageBox.information(
-                self,
+            self._emit_error(
                 self.strings.get("done_title", ""),
                 format_message(self.strings, "done_message", count=len(images)),
+                level="info",
             )
         self._set_generation_controls(enabled=True)
         self._reset_worker_state()
 
     def generation_failed(self, message: str):
-        QMessageBox.critical(
-            self,
+        self._emit_error(
             self.strings.get("fail_title", ""),
             message,
+            level="error",
         )
         self._set_generation_controls(enabled=True)
         self._reset_worker_state()
@@ -272,6 +272,10 @@ class AiGeneratorTab(QWidget):
 
     def get_generated_images(self) -> list[str]:
         return self.generated_images
+
+    def _emit_error(self, title: str, message: str, level: str = "error"):
+        if self.error_notifier:
+            self.error_notifier.emit_error(title, message, level)
 
     def _populate_dimensions(self, strings: dict | None = None):
         strings = strings or self.strings or {}
