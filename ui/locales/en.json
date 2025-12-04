@@ -1,0 +1,111 @@
+{
+    "_meta": {
+        "display_name": "English"
+    },
+    "app": {
+        "name": "LS_gen_01",
+        "version": "1.0.0"
+    },
+    "menu": {
+        "file": "File",
+        "edit": "Edit",
+        "view": "View",
+        "help": "Help"
+    },
+    "tabs": {
+        "ai_generator": "AI Generator",
+        "card_editor": "Card Editor",
+        "deck_viewer": "Deck Viewer",
+        "export": "Export"
+    },
+    "card_type": {
+        "unit": "Unit",
+        "tactic": "Tactic",
+        "equipment": "Equipment",
+        "event": "Event",
+        "thematic": "Thematic"
+    },
+    "stat": {
+        "atk": "Attack",
+        "def": "Defense",
+        "stb": "Stability",
+        "init": "Initiative",
+        "rng": "Range",
+        "move": "Movement"
+    },
+    "cost_type": {
+        "BF": "BF",
+        "AP": "AP",
+        "RP": "RP"
+    },
+    "messages": {
+        "success": "Success",
+        "error": "Error",
+        "warning": "Warning",
+        "confirm": "Confirm"
+    },
+    "ai_generator": {
+        "title": "AI Generator",
+        "name": "Card name:",
+        "type": "Type:",
+        "count": "Count:",
+        "model": "Model:",
+        "generate": "Generate",
+        "abort": "Abort",
+        "preview": "Preview:",
+        "no_image": "No image",
+        "success_msg": "Generated {count} images",
+        "aborted_msg": "Generation aborted after {count} images"
+    },
+    "card_editor": {
+        "title": "Card Editor",
+        "name": "Name:",
+        "type": "Type:",
+        "cost": "Cost:",
+        "cost_type": "Cost Type:",
+        "stats": "Stats:",
+        "atk": "Attack:",
+        "def": "Defense:",
+        "stb": "Stability:",
+        "init": "Initiative:",
+        "rng": "Range:",
+        "move": "Movement:",
+        "description": "Description:",
+        "save": "Save",
+        "new": "New Card",
+        "delete": "Delete",
+        "confirm_delete": "Delete card?",
+        "required_fields": "Fill required fields"
+    },
+    "deck_viewer": {
+        "title": "Deck Viewer",
+        "cards": "Cards:",
+        "no_cards": "No cards",
+        "delete": "Delete",
+        "edit": "Edit",
+        "confirm_delete": "Delete card?"
+    },
+    "export": {
+        "title": "Export",
+        "cards": "Cards to export:",
+        "no_cards": "No cards",
+        "select_all": "Select All",
+        "deselect_all": "Deselect All",
+        "export_images": "Export Images",
+        "export_pdf": "Export PDF",
+        "select_folder": "Select folder to save",
+        "success_msg": "Exported to {path}",
+        "no_cards_selected": "No cards selected",
+        "confirm_overwrite": "Overwrite existing files?"
+    },
+    "template_editor": {
+        "title": "Template Editor",
+        "name": "Template name:",
+        "save": "Save",
+        "load": "Load",
+        "new": "New Template",
+        "confirm_overwrite": "Overwrite existing template?",
+        "no_name": "Enter template name",
+        "not_found": "Template not found"
+    }
+}
