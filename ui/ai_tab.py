@@ -1,7 +1,7 @@
 import os
 import threading
 
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, QTimer, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
@@ -177,6 +177,8 @@ class AiGeneratorTab(QWidget):
 
         self.set_language(self.language)
 
+        QTimer.singleShot(0, lambda: self.open_preview_window(auto_start=False))
+
     def set_language(self, language: str):
         language = ensure_language(language)
         self.language = language
@@ -217,7 +219,7 @@ class AiGeneratorTab(QWidget):
                 )
             )
 
-    def open_preview_window(self):
+    def open_preview_window(self, auto_start: bool = True):
         prompt = self.prompt_edit.toPlainText()
         style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
         model = self.model_combo.currentText()
@@ -232,28 +234,39 @@ class AiGeneratorTab(QWidget):
             )
             return
 
-        if self.preview_window:
-            existing_index = tab_widget.indexOf(self.preview_window)
-            if existing_index != -1:
-                tab_widget.removeTab(existing_index)
-            self.preview_window.deleteLater()
-            self.preview_window = None
+        if not self.preview_window:
+            self.preview_window = PreviewGenWindow(
+                prompt,
+                self.csv_path,
+                model,
+                width=width,
+                height=height,
+                style_hint=style_hint,
+                count=8,
+                language=self.language,
+                error_notifier=self.error_notifier,
+                parent=tab_widget,
+                auto_start=auto_start,
+            )
+            self.preview_window.previewsSelected.connect(self._store_previews)
+        else:
+            self.preview_window.refresh_generation(
+                prompt,
+                self.csv_path,
+                model,
+                width,
+                height,
+                style_hint,
+                language=self.language,
+                auto_start=auto_start,
+            )
 
-        self.preview_window = PreviewGenWindow(
-            prompt,
-            self.csv_path,
-            model,
-            width=width,
-            height=height,
-            style_hint=style_hint,
-            count=8,
-            language=self.language,
-            error_notifier=self.error_notifier,
-            parent=tab_widget,
-        )
-        self.preview_window.previewsSelected.connect(self._store_previews)
         tab_title = get_section(self.language, "tabs").get("preview_gen", "Preview")
-        tab_widget.addTab(self.preview_window, tab_title)
+        existing_index = tab_widget.indexOf(self.preview_window)
+        if existing_index == -1:
+            tab_widget.addTab(self.preview_window, tab_title)
+        else:
+            tab_widget.setTabText(existing_index, tab_title)
         tab_widget.setCurrentWidget(self.preview_window)
 
     def _get_tab_widget(self) -> QTabWidget | None:
@@ -359,7 +372,7 @@ class AiGeneratorTab(QWidget):
                 self.preview_label.setPixmap(
                     pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 )
-        self.preview_window = None
+        # Keep preview tab active for future regenerations
 
     def generation_failed(self, message: str):
         self._emit_error(

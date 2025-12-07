@@ -149,6 +149,7 @@ class PreviewGenWindow(QWidget):
         language: str = "en",
         parent=None,
         error_notifier=None,
+        auto_start: bool = True,
     ):
         super().__init__(parent)
         self.prompt = prompt
@@ -160,8 +161,6 @@ class PreviewGenWindow(QWidget):
         self.count = count
         self.language = ensure_language(language)
         self.error_notifier = error_notifier
-        self._closing = False
-
         self.strings: dict = {}
         self.preview_data: List[dict | None] = [None] * count
         self.worker_thread: QThread | None = None
@@ -169,7 +168,16 @@ class PreviewGenWindow(QWidget):
 
         self._setup_ui()
         self.set_language(self.language)
-        self._start_generation(count)
+        self.refresh_generation(
+            prompt,
+            csv_path,
+            model,
+            width,
+            height,
+            style_hint,
+            language=self.language,
+            auto_start=auto_start,
+        )
 
     def _setup_ui(self):
         self.setMinimumWidth(820)
@@ -221,6 +229,32 @@ class PreviewGenWindow(QWidget):
         self.regenerate_bottom.setText(strings.get("regenerate", "Regenerate"))
         self.apply_button.setText(strings.get("apply", "Use selected"))
 
+    def refresh_generation(
+        self,
+        prompt: str,
+        csv_path: str | None,
+        model: str,
+        width: int,
+        height: int,
+        style_hint: str,
+        *,
+        language: str,
+        auto_start: bool = True,
+    ):
+        self.prompt = prompt
+        self.csv_path = csv_path
+        self.model = model
+        self.width = width
+        self.height = height
+        self.style_hint = style_hint
+        self.language = ensure_language(language)
+        self.preview_data = [None] * self.count
+        for item in self.items:
+            item.set_preview(None)
+        self.set_language(self.language)
+        if auto_start:
+            self._start_generation(self.count)
+
     def _start_generation(self, count: int, target_indices: List[int] | None = None):
         if count <= 0:
             return
@@ -266,19 +300,12 @@ class PreviewGenWindow(QWidget):
         self._start_generation(len(target_indices), target_indices)
 
     def apply_selection(self):
-        if self._closing:
-            return
-        self._closing = True
         selected = [data for data, item in zip(self.preview_data, self.items) if item.checkbox.isChecked() and data]
         if not selected:
             selected = [data for data in self.preview_data if data]
         self.previewsSelected.emit(selected)
-        parent = self.parent()
-        if isinstance(parent, QTabWidget):
-            index = parent.indexOf(self)
-            if index != -1:
-                parent.removeTab(index)
-        self.deleteLater()
+        for item in self.items:
+            item.checkbox.setChecked(False)
 
     def _set_controls_enabled(self, enabled: bool):
         self.regenerate_top.setEnabled(enabled)
