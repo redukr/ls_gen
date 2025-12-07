@@ -7,12 +7,12 @@ from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
-    QDialog,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QPushButton,
     QScrollArea,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -102,6 +102,7 @@ class PreviewGeneratorWorker(QWidget):
         style_hint: str,
         count: int,
         language: str,
+        row_indices: list[int] | None = None,
     ):
         super().__init__()
         self.prompt = prompt
@@ -112,6 +113,7 @@ class PreviewGeneratorWorker(QWidget):
         self.style_hint = style_hint
         self.count = count
         self.language = language
+        self.row_indices = row_indices
 
     def run(self):
         try:
@@ -124,13 +126,14 @@ class PreviewGeneratorWorker(QWidget):
                 height=self.height,
                 style_hint=self.style_hint,
                 language=self.language,
+                row_indices=self.row_indices,
             )
             self.finished.emit(previews)
         except Exception as exc:  # pragma: no cover - UI thread safety
             self.failed.emit(str(exc))
 
 
-class PreviewGenWindow(QDialog):
+class PreviewGenWindow(QWidget):
     previewsSelected = Signal(list)
 
     def __init__(
@@ -232,6 +235,7 @@ class PreviewGenWindow(QDialog):
             self.style_hint,
             count,
             self.language,
+            row_indices=target_indices,
         )
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.started.connect(self.worker.run)
@@ -269,17 +273,17 @@ class PreviewGenWindow(QDialog):
         if not selected:
             selected = [data for data in self.preview_data if data]
         self.previewsSelected.emit(selected)
-        self.accept()
+        parent = self.parent()
+        if isinstance(parent, QTabWidget):
+            index = parent.indexOf(self)
+            if index != -1:
+                parent.removeTab(index)
+        self.deleteLater()
 
     def _set_controls_enabled(self, enabled: bool):
         self.regenerate_top.setEnabled(enabled)
         self.regenerate_bottom.setEnabled(enabled)
         self.apply_button.setEnabled(enabled)
-
-    def closeEvent(self, event):  # noqa: N802
-        if not self._closing:
-            self.apply_selection()
-        super().closeEvent(event)
 
     def _emit_error(self, title: str, message: str, level: str = "error"):
         if self.error_notifier:
