@@ -1,5 +1,16 @@
 {
   "language": "uk",
   "export_dir": "",
-  "settings_dir": "D:/PRJ/ls_gen/import"
+  "settings_dir": "D:/PRJ/ls_gen/import",
+  "ai_generator": {
+    "prompt": "tactical TCG layout, no faces, full-body silhouette, sharp outlines, military gear visible, minimal HUD, action pose, clean geometry\n",
+    "style_hint": "tactical minimalism, cold steel palette, clean UI, sharp shapes\n",
+    "count": "1",
+    "dimensions": [
+      448,
+      696
+    ],
+    "model": "DreamShaperXL",
+    "csv_path": "D:/PRJ/ls_gen/import/deck_95_tr.json"
+  }
 }
