@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ai.app_ai import STYLE_HINT, finalize_preview, generate_ai_images
+from ai.tools.generator import AVAILABLE_MODELS
 from ui.preview_window import PreviewGenWindow
 from ui.locales import ensure_language, format_message, get_section
 
@@ -144,10 +145,7 @@ class AiGeneratorTab(QWidget):
         self.model_label = QLabel()
         layout.addWidget(self.model_label)
         self.model_combo = QComboBox()
-        self.model_combo.addItems([
-            "RealVisXL (SDXL)",
-            "SDXL Base 1.0"
-        ])
+        self.model_combo.addItems(list(AVAILABLE_MODELS.keys()))
         layout.addWidget(self.model_combo)
 
         # Generate buttons
