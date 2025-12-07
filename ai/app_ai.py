@@ -153,7 +153,7 @@ def generate_previews(
     height: int,
     style_hint: str = STYLE_HINT,
     language: str = "Українська",
-    steps: int = 12,
+    steps: int = 7,
     row_indices: List[int] | None = None,
 ) -> List[dict]:
     """Generate lightweight preview images with preserved seeds.
