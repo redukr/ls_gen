@@ -32,7 +32,12 @@ class MainWindow(QMainWindow):
         self.rendered_cards: list[str] = []
 
         self.ai_tab = AiGeneratorTab(error_notifier=self.error_notifier)
-        self.export_tab = ExportTab(self.get_rendered_cards, error_notifier=self.error_notifier)
+        self.export_tab = ExportTab(
+            self.get_rendered_cards,
+            get_ai_settings=self.ai_tab.gather_settings,
+            apply_ai_settings=self.ai_tab.apply_settings,
+            error_notifier=self.error_notifier,
+        )
         self.export_tab.languageChanged.connect(self.on_language_changed)
         self.render_tab = RenderTab(
             get_generated_images=self.ai_tab.get_generated_images,
