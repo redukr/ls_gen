@@ -4,7 +4,7 @@ import os
 from typing import List
 
 from PySide6.QtCore import QObject, Qt, QThread, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QCursor, QGuiApplication, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QGridLayout,
@@ -24,9 +24,16 @@ from ui.locales import ensure_language, get_section
 class HoverPreviewLabel(QLabel):
     """Show a magnified view of the pixmap on hover."""
 
-    def __init__(self, base_size: int = 192, zoom_factor: int = 3, parent=None):
+    def __init__(
+        self,
+        base_width: int = 160,
+        base_height: int = 224,
+        zoom_factor: int = 3,
+        parent=None,
+    ):
         super().__init__(parent)
-        self.base_size = base_size
+        self.base_width = base_width
+        self.base_height = base_height
         self.zoom_factor = zoom_factor
         self.original_pixmap = None
         self.zoom_label: QLabel | None = None
@@ -38,7 +45,10 @@ class HoverPreviewLabel(QLabel):
             self.original_pixmap = pixmap
             self.setPixmap(
                 pixmap.scaled(
-                    self.base_size, self.base_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    self.base_width,
+                    self.base_height,
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation,
                 )
             )
         else:
@@ -53,15 +63,25 @@ class HoverPreviewLabel(QLabel):
             self.zoom_label = QLabel()
             self.zoom_label.setWindowFlags(Qt.ToolTip)
         scaled = self.original_pixmap.scaled(
-            self.base_size * self.zoom_factor,
-            self.base_size * self.zoom_factor,
+            self.base_width * self.zoom_factor,
+            self.base_height * self.zoom_factor,
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation,
         )
         self.zoom_label.setPixmap(scaled)
         self.zoom_label.adjustSize()
-        global_pos = self.mapToGlobal(self.rect().bottomRight())
-        self.zoom_label.move(global_pos)
+        cursor_pos = QCursor.pos()
+        label_size = self.zoom_label.size()
+        x = cursor_pos.x() + 12
+        y = cursor_pos.y() - label_size.height() - 12
+
+        screen = QGuiApplication.screenAt(cursor_pos) or QGuiApplication.primaryScreen()
+        if screen:
+            available = screen.availableGeometry()
+            x = max(available.left(), min(x, available.right() - label_size.width()))
+            y = max(available.top(), min(y, available.bottom() - label_size.height()))
+
+        self.zoom_label.move(x, y)
         self.zoom_label.show()
 
     def leaveEvent(self, event):  # noqa: N802
@@ -100,6 +120,7 @@ class PreviewGeneratorWorker(QObject):
         width: int,
         height: int,
         style_hint: str,
+        negative_prompt: str,
         count: int,
         language: str,
         row_indices: list[int] | None = None,
@@ -111,6 +132,7 @@ class PreviewGeneratorWorker(QObject):
         self.width = width
         self.height = height
         self.style_hint = style_hint
+        self.negative_prompt = negative_prompt
         self.count = count
         self.language = language
         self.row_indices = row_indices
@@ -125,6 +147,7 @@ class PreviewGeneratorWorker(QObject):
                 width=self.width,
                 height=self.height,
                 style_hint=self.style_hint,
+                negative_prompt=self.negative_prompt,
                 language=self.language,
                 row_indices=self.row_indices,
             )
@@ -145,6 +168,7 @@ class PreviewGenWindow(QWidget):
         width: int,
         height: int,
         style_hint: str,
+        negative_prompt: str,
         count: int = 8,
         language: str = "en",
         parent=None,
@@ -158,6 +182,7 @@ class PreviewGenWindow(QWidget):
         self.width = width
         self.height = height
         self.style_hint = style_hint
+        self.negative_prompt = negative_prompt
         self.count = count
         self.language = ensure_language(language)
         self.error_notifier = error_notifier
@@ -175,6 +200,7 @@ class PreviewGenWindow(QWidget):
             width,
             height,
             style_hint,
+            negative_prompt,
             language=self.language,
             auto_start=auto_start,
         )
@@ -238,6 +264,7 @@ class PreviewGenWindow(QWidget):
         height: int,
         style_hint: str,
         *,
+        negative_prompt: str,
         language: str,
         auto_start: bool = True,
     ):
@@ -247,6 +274,7 @@ class PreviewGenWindow(QWidget):
         self.width = width
         self.height = height
         self.style_hint = style_hint
+        self.negative_prompt = negative_prompt
         self.language = ensure_language(language)
         self.preview_data = [None] * self.count
         for item in self.items:
@@ -267,6 +295,7 @@ class PreviewGenWindow(QWidget):
             self.width,
             self.height,
             self.style_hint,
+            self.negative_prompt,
             count,
             self.language,
             row_indices=target_indices,

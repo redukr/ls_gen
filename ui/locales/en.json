@@ -54,6 +54,7 @@
         "success_msg": "Generated {count} images",
         "aborted_msg": "Generation aborted after {count} images",
         "prompt": "Prompt:",
+        "negative_prompt": "Negative prompt:",
         "style_hint": "Style hint:",
         "load_data": "Load CSV/JSON",
         "dimensions": "Dimensions:",
@@ -72,6 +73,7 @@
         "fail_title": "Generation failed",
         "preview_tab_error": "Preview tab is not available",
         "dimension_labels": [
+            "500 × 700 px (2.5 × 3.5 preview)",
             "448 × 696 px (200 DPI)",
             "552 × 864 px (250 DPI)",
             "664 × 1040 px (300 DPI)"

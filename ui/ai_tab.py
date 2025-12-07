@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ai.app_ai import STYLE_HINT, finalize_preview, generate_ai_images
-from ai.tools.generator import AVAILABLE_MODELS
+from ai.tools.generator import AVAILABLE_MODELS, DEFAULT_NEGATIVE_PROMPT
 from ui.preview_window import PreviewGenWindow
 from ui.locales import ensure_language, format_message, get_section
 
@@ -34,6 +34,7 @@ class GenerationWorker(QObject):
         width: int,
         height: int,
         style_hint: str,
+        negative_prompt: str,
         abort_event: threading.Event,
     ):
         super().__init__()
@@ -44,6 +45,7 @@ class GenerationWorker(QObject):
         self.width = width
         self.height = height
         self.style_hint = style_hint
+        self.negative_prompt = negative_prompt
         self.abort_event = abort_event
 
     def run(self):
@@ -57,6 +59,7 @@ class GenerationWorker(QObject):
                 self.height,
                 self.abort_event.is_set,
                 style_hint=self.style_hint,
+                negative_prompt=self.negative_prompt,
             )
             self.finished.emit(images)
         except Exception as e:
@@ -111,6 +114,13 @@ class AiGeneratorTab(QWidget):
         layout.addWidget(self.prompt_label)
         layout.addWidget(self.prompt_edit)
 
+        # Negative prompt
+        self.negative_prompt_label = QLabel()
+        layout.addWidget(self.negative_prompt_label)
+        self.negative_prompt_edit = QTextEdit()
+        self.negative_prompt_edit.setPlainText(DEFAULT_NEGATIVE_PROMPT)
+        layout.addWidget(self.negative_prompt_edit)
+
         # Style hint (editable)
         self.style_label = QLabel()
         layout.addWidget(self.style_label)
@@ -134,6 +144,7 @@ class AiGeneratorTab(QWidget):
         layout.addWidget(self.dimensions_label)
         self.dimension_combo = QComboBox()
         self.dimension_options = [
+            (500, 700, 200),
             (448, 696, 200),
             (552, 864, 250),
             (664, 1040, 300),
@@ -181,6 +192,7 @@ class AiGeneratorTab(QWidget):
         width, height = self._get_selected_dimensions()
         return {
             "prompt": self.prompt_edit.toPlainText(),
+            "negative_prompt": self.negative_prompt_edit.toPlainText(),
             "style_hint": self.style_hint_edit.toPlainText(),
             "count": self.count_edit.text(),
             "dimensions": [width, height],
@@ -192,6 +204,10 @@ class AiGeneratorTab(QWidget):
         prompt = settings.get("prompt")
         if prompt is not None:
             self.prompt_edit.setPlainText(str(prompt))
+
+        negative_prompt = settings.get("negative_prompt")
+        if negative_prompt is not None:
+            self.negative_prompt_edit.setPlainText(str(negative_prompt))
 
         style_hint = settings.get("style_hint")
         if style_hint is not None:
@@ -233,6 +249,7 @@ class AiGeneratorTab(QWidget):
         strings = get_section(language, "ai_generator")
         self.strings = strings
         self.prompt_label.setText(strings.get("prompt", ""))
+        self.negative_prompt_label.setText(strings.get("negative_prompt", ""))
         self.style_label.setText(strings.get("style_hint", ""))
         self.csv_button.setText(strings.get("load_data", ""))
         self.count_label.setText(strings.get("count", ""))
@@ -270,6 +287,7 @@ class AiGeneratorTab(QWidget):
     def open_preview_window(self, auto_start: bool = True):
         prompt = self.prompt_edit.toPlainText()
         style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
+        negative_prompt = self.negative_prompt_edit.toPlainText().strip() or DEFAULT_NEGATIVE_PROMPT
         model = self.model_combo.currentText()
         width, height = self._get_selected_dimensions()
 
@@ -308,6 +326,7 @@ class AiGeneratorTab(QWidget):
                 width=width,
                 height=height,
                 style_hint=style_hint,
+                negative_prompt=negative_prompt,
                 count=desired_count,
                 language=self.language,
                 error_notifier=self.error_notifier,
@@ -323,6 +342,7 @@ class AiGeneratorTab(QWidget):
                 width,
                 height,
                 style_hint,
+                negative_prompt,
                 language=self.language,
                 auto_start=auto_start,
             )
@@ -351,6 +371,7 @@ class AiGeneratorTab(QWidget):
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
         style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
+        negative_prompt = self.negative_prompt_edit.toPlainText().strip() or DEFAULT_NEGATIVE_PROMPT
         model = self.model_combo.currentText()
 
         try:
@@ -394,6 +415,7 @@ class AiGeneratorTab(QWidget):
             width,
             height,
             style_hint,
+            negative_prompt,
             self.abort_event
         )
         self.worker.moveToThread(self.worker_thread)
