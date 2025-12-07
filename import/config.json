@@ -1,10 +1,10 @@
 {
-  "language": "uk",
+  "language": "en",
   "export_dir": "",
   "settings_dir": "D:/PRJ/ls_gen/import",
   "ai_generator": {
-    "prompt": "tactical TCG layout, no faces, full-body silhouette, sharp outlines, military gear visible, minimal HUD, action pose, clean geometry\n",
-    "style_hint": "tactical minimalism, cold steel palette, clean UI, sharp shapes\n",
+    "prompt": "{name_en}, Ukrainian Air Assault soldier in a dynamic battlefield scene. Full-body, realistic proportions, tactical gear, motion, debris, smoke, environment depth. \nNo interface, no HUD, no UI panels, no grids, no icons, no borders, no text, no card layout.\n",
+    "style_hint": ", minimal texture, military tone\n",
     "count": "4",
     "dimensions": [
       448,
