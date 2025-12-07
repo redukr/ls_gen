@@ -25,9 +25,18 @@ from ui.locales import (
 class ExportTab(QWidget):
     languageChanged = Signal(str)
 
-    def __init__(self, get_rendered_cards, parent=None, error_notifier=None):
+    def __init__(
+        self,
+        get_rendered_cards,
+        get_ai_settings=None,
+        apply_ai_settings=None,
+        parent=None,
+        error_notifier=None,
+    ):
         super().__init__(parent)
         self.get_rendered_cards = get_rendered_cards
+        self.get_ai_settings = get_ai_settings
+        self.apply_ai_settings = apply_ai_settings
         self.error_notifier = error_notifier
         self.language = ensure_language("en")
         self.strings: dict = {}
@@ -113,11 +122,14 @@ class ExportTab(QWidget):
         return self.export_dir.text().strip()
 
     def _gather_settings(self) -> dict:
-        return {
+        settings = {
             "language": self.language,
             "export_dir": self.get_export_dir(),
             "settings_dir": self.get_settings_dir(),
         }
+        if self.get_ai_settings:
+            settings["ai_generator"] = self.get_ai_settings()
+        return settings
 
     def get_settings_dir(self) -> str:
         return self.settings_dir.text().strip()
@@ -182,6 +194,9 @@ class ExportTab(QWidget):
             if loaded_language != self.language:
                 self.set_language(loaded_language)
                 self.languageChanged.emit(loaded_language)
+        ai_settings = loaded.get("ai_generator")
+        if ai_settings and self.apply_ai_settings:
+            self.apply_ai_settings(ai_settings)
         self._emit_error(
             self.strings.get("done_title", ""),
             format_message(self.strings, "settings_loaded", path=path),

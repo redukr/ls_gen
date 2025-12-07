@@ -177,6 +177,56 @@ class AiGeneratorTab(QWidget):
 
         QTimer.singleShot(0, lambda: self.open_preview_window(auto_start=False))
 
+    def gather_settings(self) -> dict:
+        width, height = self._get_selected_dimensions()
+        return {
+            "prompt": self.prompt_edit.toPlainText(),
+            "style_hint": self.style_hint_edit.toPlainText(),
+            "count": self.count_edit.text(),
+            "dimensions": [width, height],
+            "model": self.model_combo.currentText(),
+            "csv_path": self.csv_path,
+        }
+
+    def apply_settings(self, settings: dict):
+        prompt = settings.get("prompt")
+        if prompt is not None:
+            self.prompt_edit.setPlainText(str(prompt))
+
+        style_hint = settings.get("style_hint")
+        if style_hint is not None:
+            self.style_hint_edit.setPlainText(str(style_hint))
+
+        count = settings.get("count")
+        if count is not None:
+            self.count_edit.setText(str(count))
+
+        dimensions = settings.get("dimensions") or []
+        if isinstance(dimensions, (list, tuple)) and len(dimensions) == 2:
+            try:
+                width, height = int(dimensions[0]), int(dimensions[1])
+                for idx, (opt_width, opt_height, _) in enumerate(self.dimension_options):
+                    if (opt_width, opt_height) == (width, height):
+                        self.dimension_combo.setCurrentIndex(idx)
+                        break
+            except Exception:
+                pass
+
+        model = settings.get("model")
+        if model and model in [self.model_combo.itemText(i) for i in range(self.model_combo.count())]:
+            self.model_combo.setCurrentText(model)
+
+        csv_path = settings.get("csv_path")
+        if csv_path:
+            self.csv_path = str(csv_path)
+            self.csv_button.setText(
+                format_message(
+                    self.strings,
+                    "data_loaded",
+                    name=os.path.basename(self.csv_path),
+                )
+            )
+
     def set_language(self, language: str):
         language = ensure_language(language)
         self.language = language
