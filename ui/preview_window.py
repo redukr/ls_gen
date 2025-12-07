@@ -200,7 +200,7 @@ class PreviewGenWindow(QWidget):
             width,
             height,
             style_hint,
-            negative_prompt,
+            negative_prompt=negative_prompt,
             language=self.language,
             auto_start=auto_start,
         )
@@ -263,7 +263,6 @@ class PreviewGenWindow(QWidget):
         width: int,
         height: int,
         style_hint: str,
-        *,
         negative_prompt: str,
         language: str,
         auto_start: bool = True,
