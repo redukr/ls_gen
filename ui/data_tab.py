@@ -313,11 +313,12 @@ class DataEditorWidget(QWidget):
             return
         if translation:
             self.updating = True
-            new_item = target_item or QTableWidgetItem()
-            new_item.setText(translation)
-            new_item.setData(Qt.UserRole, False)
-            new_item.setData(Qt.UserRole + 1, translation)
-            self.table.setItem(row, name_en_index, new_item)
+            if target_item is None:
+                target_item = QTableWidgetItem()
+                self.table.setItem(row, name_en_index, target_item)
+            target_item.setText(translation)
+            target_item.setData(Qt.UserRole, False)
+            target_item.setData(Qt.UserRole + 1, translation)
             self.table.resizeColumnsToContents()
             self.updating = False
 
