@@ -58,6 +58,7 @@
         "dimensions": "Розмір:",
         "model_label": "Назва моделі:",
         "generate_button": "Згенерувати зображення",
+        "generate_previews_button": "Згенерувати прев’ю",
         "abort_button": "Зупинити",
         "open_dialog": "Виберіть CSV або JSON",
         "data_loaded": "Файл завантажено: {name}",
@@ -73,6 +74,13 @@
             "552 × 864 пікс (250 DPI)",
             "664 × 1040 пікс (300 DPI)"
         ]
+    },
+    "preview_gen": {
+        "title": "Preview Gen",
+        "regenerate": "Перегенерувати",
+        "apply": "Використати вибране",
+        "like_label": "Сподобалось",
+        "error_title": "Помилка"
     },
     "error_log": {
         "tab_title": "Журнал помилок",

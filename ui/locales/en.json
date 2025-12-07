@@ -58,6 +58,7 @@
         "dimensions": "Dimensions:",
         "model_label": "Model name:",
         "generate_button": "Generate Images",
+        "generate_previews_button": "Generate Previews",
         "abort_button": "Abort",
         "open_dialog": "Select CSV or JSON",
         "data_loaded": "Data Loaded: {name}",
@@ -73,6 +74,13 @@
             "552 × 864 px (250 DPI)",
             "664 × 1040 px (300 DPI)"
         ]
+    },
+    "preview_gen": {
+        "title": "Preview Gen",
+        "regenerate": "Regenerate",
+        "apply": "Use selected",
+        "like_label": "Liked",
+        "error_title": "Error"
     },
     "error_log": {
         "tab_title": "Error Log",
