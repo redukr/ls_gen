@@ -1,74 +1,69 @@
-LS_gen/
+ls_gen/
     requirements.txt
     run.py
     structure.py
     structure.txt
-    ai/
-        app_ai.py
-        __init__.py
-        models/
-            __init__.py
-            opus-mt-uk-en/
-            realvisxl/
-            stable-diffusion-xl-base-1.0/
-        tools/
-            csv_loader.py
-            generator.py
-            image_tools.py
-            __init__.py
-    assets/
-        fonts/
-            LS_font.ttf
-        frames/
-            base_frame.png
-        icons/
-            atk.png
-            bf.png
-            ci.png
-            def.png
-            init.png
-            log.png
-            move.png
-            rng.png
-            stb.png
-    config/
-        deck_95.csv
-        deck_95.json
-        __init__.py
+ai/
+    app_ai.py
+    __init__.py
     models/
         opus-mt-uk-en/
-            config.json
-            generation_config.json
-            pytorch_model.bin
-            README.md
-            source.spm
-            target.spm
-            tf_model.h5
-            tokenizer_config.json
-            vocab.json
-    renderer/
+        realvisxl/
+        stable-diffusion-xl-base-1.0/
+    tools/
+        csv_loader.py
+        generator.py
+        image_tools.py
         __init__.py
-        core/
-            image_loader.py
-            json_loader.py
-            models.py
-            paths.py
-            pdf_exporter.py
-            renderer.py
-            scene_exporter.py
-        layouts/
-            template_layout.json
-        templates/
-            template.json
-        widgets/
-            card_scene_view.py
-            drag_canvas.py
-            property_panel.py
-            translator.py
-    ui/
-        ai_tab.py
-        data_tab.py
-        export_tab.py
-        main_window.py
-        render_tab.py
+assets/
+    fonts/
+        LS_font.ttf
+    frames/
+        base_frame.png
+    icons/
+        atk.png
+        bf.png
+        ci.png
+        def.png
+        init.png
+        log.png
+        move.png
+        rng.png
+        stb.png
+export/
+    95/
+import/
+    deck_95.csv
+    deck_95.json
+    __init__.py
+renderer/
+    __init__.py
+    core/
+        image_loader.py
+        json_loader.py
+        models.py
+        paths.py
+        pdf_exporter.py
+        renderer.py
+        scene_exporter.py
+    layouts/
+        template_layout.json
+    templates/
+        template.json
+    widgets/
+        card_scene_view.py
+        drag_canvas.py
+        property_panel.py
+        translator.py
+ui/
+    ai_tab.py
+    data_tab.py
+    error_window.py
+    export_tab.py
+    main_window.py
+    render_tab.py
+    __init__.py
+    locales/
+        en.json
+        uk.json
         __init__.py
