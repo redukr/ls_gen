@@ -3,11 +3,10 @@ from __future__ import annotations
 import os
 from typing import List
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
-    QDialog,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -88,7 +87,7 @@ class PreviewItem(QWidget):
         self.checkbox.setChecked(False)
 
 
-class PreviewGeneratorWorker(QWidget):
+class PreviewGeneratorWorker(QObject):
     finished = Signal(list)
     failed = Signal(str)
 
@@ -102,6 +101,7 @@ class PreviewGeneratorWorker(QWidget):
         style_hint: str,
         count: int,
         language: str,
+        row_indices: list[int] | None = None,
     ):
         super().__init__()
         self.prompt = prompt
@@ -112,6 +112,7 @@ class PreviewGeneratorWorker(QWidget):
         self.style_hint = style_hint
         self.count = count
         self.language = language
+        self.row_indices = row_indices
 
     def run(self):
         try:
@@ -124,13 +125,14 @@ class PreviewGeneratorWorker(QWidget):
                 height=self.height,
                 style_hint=self.style_hint,
                 language=self.language,
+                row_indices=self.row_indices,
             )
             self.finished.emit(previews)
         except Exception as exc:  # pragma: no cover - UI thread safety
             self.failed.emit(str(exc))
 
 
-class PreviewGenWindow(QDialog):
+class PreviewGenWindow(QWidget):
     previewsSelected = Signal(list)
 
     def __init__(
@@ -146,6 +148,7 @@ class PreviewGenWindow(QDialog):
         language: str = "en",
         parent=None,
         error_notifier=None,
+        auto_start: bool = True,
     ):
         super().__init__(parent)
         self.prompt = prompt
@@ -157,8 +160,6 @@ class PreviewGenWindow(QDialog):
         self.count = count
         self.language = ensure_language(language)
         self.error_notifier = error_notifier
-        self._closing = False
-
         self.strings: dict = {}
         self.preview_data: List[dict | None] = [None] * count
         self.worker_thread: QThread | None = None
@@ -166,7 +167,16 @@ class PreviewGenWindow(QDialog):
 
         self._setup_ui()
         self.set_language(self.language)
-        self._start_generation(count)
+        self.refresh_generation(
+            prompt,
+            csv_path,
+            model,
+            width,
+            height,
+            style_hint,
+            language=self.language,
+            auto_start=auto_start,
+        )
 
     def _setup_ui(self):
         self.setMinimumWidth(820)
@@ -218,6 +228,32 @@ class PreviewGenWindow(QDialog):
         self.regenerate_bottom.setText(strings.get("regenerate", "Regenerate"))
         self.apply_button.setText(strings.get("apply", "Use selected"))
 
+    def refresh_generation(
+        self,
+        prompt: str,
+        csv_path: str | None,
+        model: str,
+        width: int,
+        height: int,
+        style_hint: str,
+        *,
+        language: str,
+        auto_start: bool = True,
+    ):
+        self.prompt = prompt
+        self.csv_path = csv_path
+        self.model = model
+        self.width = width
+        self.height = height
+        self.style_hint = style_hint
+        self.language = ensure_language(language)
+        self.preview_data = [None] * self.count
+        for item in self.items:
+            item.set_preview(None)
+        self.set_language(self.language)
+        if auto_start:
+            self._start_generation(self.count)
+
     def _start_generation(self, count: int, target_indices: List[int] | None = None):
         if count <= 0:
             return
@@ -232,6 +268,7 @@ class PreviewGenWindow(QDialog):
             self.style_hint,
             count,
             self.language,
+            row_indices=target_indices,
         )
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.started.connect(self.worker.run)
@@ -262,24 +299,17 @@ class PreviewGenWindow(QDialog):
         self._start_generation(len(target_indices), target_indices)
 
     def apply_selection(self):
-        if self._closing:
-            return
-        self._closing = True
         selected = [data for data, item in zip(self.preview_data, self.items) if item.checkbox.isChecked() and data]
         if not selected:
             selected = [data for data in self.preview_data if data]
         self.previewsSelected.emit(selected)
-        self.accept()
+        for item in self.items:
+            item.checkbox.setChecked(False)
 
     def _set_controls_enabled(self, enabled: bool):
         self.regenerate_top.setEnabled(enabled)
         self.regenerate_bottom.setEnabled(enabled)
         self.apply_button.setEnabled(enabled)
-
-    def closeEvent(self, event):  # noqa: N802
-        if not self._closing:
-            self.apply_selection()
-        super().closeEvent(event)
 
     def _emit_error(self, title: str, message: str, level: str = "error"):
         if self.error_notifier:
