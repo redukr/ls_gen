@@ -78,6 +78,13 @@ class MainWindow(QMainWindow):
         self.tabs.setTabText(2, tabs_strings.get("export", "Export"))
         self.tabs.setTabText(3, tabs_strings.get("data_editor", "Data Editor"))
         self.tabs.setTabText(4, error_strings.get("tab_title", "Errors"))
+        if self.ai_tab.preview_window:
+            preview_index = self.tabs.indexOf(self.ai_tab.preview_window)
+            if preview_index != -1:
+                self.tabs.setTabText(
+                    preview_index, tabs_strings.get("preview_gen", "Preview Gen")
+                )
+                self.ai_tab.preview_window.set_language(language)
         self.ai_tab.set_language(language)
         self.render_tab.set_language(language)
         self.export_tab.set_language(language)
