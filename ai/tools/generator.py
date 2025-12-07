@@ -87,8 +87,17 @@ def load_model(model_type, model_path):
             print("[OPT WARNING] VAE tiling unavailable")
 
         # 4. scheduler DPM++ 2M Karras — найкращий баланс швидкість/якість
-        pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-        print("[OPT] Scheduler: DPM++ 2M")
+        pipe.scheduler = DPMSolverMultistepScheduler.from_config(
+            pipe.scheduler.config,
+            # DreamShaperXL ships with a scheduler config that sets
+            # ``algorithm_type="deis"`` and ``final_sigmas_type="zero"``.
+            # That combination fails on recent diffusers with the runtime
+            # error: ``final_sigmas_type zero is not supported for``
+            # ``algorithm_type deis``. Forcing the safer "sigma_min"
+            # variant keeps DPM++ 2M behavior while avoiding the crash.
+            final_sigmas_type="sigma_min",
+        )
+        print("[OPT] Scheduler: DPM++ 2M (sigma_min final sigmas)")
 
         # 5. torch.compile — дає +10–20% швидкості навіть на Windows
         try:
