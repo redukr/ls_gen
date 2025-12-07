@@ -13,12 +13,12 @@ current_model_type = None
 torch.set_float32_matmul_precision("medium")
 
 
-# Мапа моделей
 AVAILABLE_MODELS = {
     "RealVisXL (SDXL)": ("sdxl", "ai/models/realvisxl"),
     "SDXL Base 1.0": ("sdxl", "ai/models/stable-diffusion-xl-base-1.0"),
+    "DreamShaperXL": ("sdxl", "ai/models/dreamshaperxl"),
+    "JuggernautXL": ("sdxl", "ai/models/juggernautxl"),
 }
-
 
 # ============================================================
 #                 LOAD MODEL (RTX 3060 OPTIMIZED)
