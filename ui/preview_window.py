@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import List
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -88,7 +88,7 @@ class PreviewItem(QWidget):
         self.checkbox.setChecked(False)
 
 
-class PreviewGeneratorWorker(QWidget):
+class PreviewGeneratorWorker(QObject):
     finished = Signal(list)
     failed = Signal(str)
 
