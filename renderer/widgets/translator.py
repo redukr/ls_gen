@@ -22,18 +22,22 @@ class OfflineTranslator:
 
             # Перевірка статусу
             if response.status_code != 200:
-                return f"[ERROR] API недоступне: {response.status_code} {response.text}"
+                raise RuntimeError(
+                    f"API недоступне: {response.status_code} {response.text}"
+                )
 
             # Спроба розпарсити JSON
             try:
                 data = response.json()
-            except Exception:
-                return f"[ERROR] Некоректна відповідь API (не JSON): {response.text[:200]}"
+            except Exception as exc:
+                raise ValueError(
+                    f"Некоректна відповідь API (не JSON): {response.text[:200]}"
+                ) from exc
 
             if "translatedText" not in data:
-                return f"[ERROR] Некоректна відповідь API: {data}"
+                raise ValueError(f"Некоректна відповідь API: {data}")
 
             return data["translatedText"]
 
         except Exception as e:
-            return f"[ERROR] Переклад недоступний: {e}"
+            raise RuntimeError(f"Переклад недоступний: {e}") from e
