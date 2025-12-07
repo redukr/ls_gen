@@ -89,6 +89,7 @@ def generate_ai_images(
     *,
     style_hint: str = STYLE_HINT,
     language: str = "Українська",   # ← ДОДАТИ ЦЕ
+    negative_prompt: str | None = None,
 ) -> List[str]:
     """
     Generate a list of images with optional CSV-driven personalization.
@@ -152,6 +153,7 @@ def generate_ai_images(
             model_name,
             width=width,
             height=height,
+            negative_prompt=negative_prompt,
         )
         path = f"export/ai_{i+1}.png"
         img.save(path)
@@ -172,6 +174,7 @@ def generate_previews(
     language: str = "Українська",
     steps: int = 7,
     row_indices: List[int] | None = None,
+    negative_prompt: str | None = None,
 ) -> List[dict]:
     """Generate lightweight preview images with preserved seeds.
 
@@ -232,6 +235,7 @@ def generate_previews(
             height=height,
             steps=steps,
             seed=seed,
+            negative_prompt=negative_prompt,
         )
         os.makedirs("export", exist_ok=True)
         path = f"export/preview_{i+1}.png"
@@ -246,6 +250,7 @@ def generate_previews(
                 "width": width,
                 "height": height,
                 "style_hint": style_hint,
+                "negative_prompt": negative_prompt,
                 "params": row_params,
             }
         )
@@ -269,6 +274,7 @@ def finalize_preview(preview: dict, *, steps: int = 30) -> str:
         height=height,
         steps=steps,
         seed=seed,
+        negative_prompt=preview.get("negative_prompt"),
     )
 
     os.makedirs("export", exist_ok=True)
