@@ -154,6 +154,7 @@ def generate_previews(
     style_hint: str = STYLE_HINT,
     language: str = "Українська",
     steps: int = 12,
+    row_indices: List[int] | None = None,
 ) -> List[dict]:
     """Generate lightweight preview images with preserved seeds.
 
@@ -168,7 +169,8 @@ def generate_previews(
 
     for i in range(count):
         if isinstance(params, list):
-            row_params = params[i] if i < len(params) else {}
+            param_idx = row_indices[i] if row_indices and i < len(row_indices) else i
+            row_params = params[param_idx] if param_idx < len(params) else {}
         elif isinstance(params, dict):
             row_params = params
         else:
