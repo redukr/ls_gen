@@ -223,8 +223,8 @@ class AiGeneratorTab(QWidget):
         model = self.model_combo.currentText()
         width, height = self._get_selected_dimensions()
 
-        tab_widget = self._get_tab_widget()
-        if not tab_widget:
+        tab_widget = self.parent()
+        if not isinstance(tab_widget, QTabWidget):
             self._emit_error(
                 self.strings.get("fail_title", ""),
                 self.strings.get("preview_tab_error", ""),
@@ -255,14 +255,6 @@ class AiGeneratorTab(QWidget):
         tab_title = get_section(self.language, "tabs").get("preview_gen", "Preview")
         tab_widget.addTab(self.preview_window, tab_title)
         tab_widget.setCurrentWidget(self.preview_window)
-
-    def _get_tab_widget(self) -> QTabWidget | None:
-        current = self.parent()
-        while current:
-            if isinstance(current, QTabWidget):
-                return current
-            current = current.parent()
-        return None
 
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
