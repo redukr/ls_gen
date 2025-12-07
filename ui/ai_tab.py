@@ -342,7 +342,7 @@ class AiGeneratorTab(QWidget):
                 width,
                 height,
                 style_hint,
-                negative_prompt,
+                negative_prompt=negative_prompt,
                 language=self.language,
                 auto_start=auto_start,
             )
