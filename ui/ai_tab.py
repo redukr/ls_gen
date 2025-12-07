@@ -5,6 +5,7 @@ from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
@@ -13,7 +14,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ai.app_ai import generate_ai_images, STYLE_HINT
+from ai.app_ai import STYLE_HINT, finalize_preview, generate_ai_images
+from ui.preview_window import PreviewGenWindow
 from ui.locales import ensure_language, format_message, get_section
 
 
@@ -59,6 +61,28 @@ class GenerationWorker(QObject):
             self.failed.emit(str(e))
 
 
+class FinalizationWorker(QObject):
+    finished = Signal(list)
+    failed = Signal(str)
+
+    def __init__(self, previews: list[dict], abort_event: threading.Event):
+        super().__init__()
+        self.previews = previews
+        self.abort_event = abort_event
+
+    def run(self):
+        try:
+            results = []
+            for idx, preview in enumerate(self.previews):
+                if self.abort_event.is_set():
+                    break
+                path = finalize_preview(preview, steps=40)
+                results.append(path)
+            self.finished.emit(results)
+        except Exception as e:
+            self.failed.emit(str(e))
+
+
 class AiGeneratorTab(QWidget):
     imagesGenerated = Signal(list)
 
@@ -74,6 +98,8 @@ class AiGeneratorTab(QWidget):
         self.abort_event: threading.Event | None = None
         self.worker: GenerationWorker | None = None
         self.worker_thread: QThread | None = None
+        self.preview_window: PreviewGenWindow | None = None
+        self.previewed_images: list[dict] = []
 
         layout = QVBoxLayout()
 
@@ -123,10 +149,17 @@ class AiGeneratorTab(QWidget):
         ])
         layout.addWidget(self.model_combo)
 
-        # Generate button
+        # Generate buttons
+        buttons_layout = QHBoxLayout()
         self.generate_button = QPushButton()
         self.generate_button.clicked.connect(self.generate_ai)
-        layout.addWidget(self.generate_button)
+        buttons_layout.addWidget(self.generate_button)
+
+        self.preview_button = QPushButton()
+        self.preview_button.clicked.connect(self.open_preview_window)
+        buttons_layout.addWidget(self.preview_button)
+        buttons_layout.addStretch(1)
+        layout.addLayout(buttons_layout)
 
         # Abort button
         self.abort_button = QPushButton()
@@ -155,6 +188,7 @@ class AiGeneratorTab(QWidget):
         self.dimensions_label.setText(strings.get("dimensions", ""))
         self.model_label.setText(strings.get("model_label", strings.get("model", "")))
         self.generate_button.setText(strings.get("generate_button", ""))
+        self.preview_button.setText(strings.get("generate_previews_button", ""))
         self.abort_button.setText(strings.get("abort_button", strings.get("abort", "")))
         no_image = strings.get("no_image", "")
         if not self.preview_label.text() or self.preview_label.text() in (
@@ -182,6 +216,26 @@ class AiGeneratorTab(QWidget):
                 )
             )
 
+    def open_preview_window(self):
+        prompt = self.prompt_edit.toPlainText()
+        style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
+        model = self.model_combo.currentText()
+        width, height = self._get_selected_dimensions()
+
+        self.preview_window = PreviewGenWindow(
+            prompt,
+            self.csv_path,
+            model,
+            width=width,
+            height=height,
+            style_hint=style_hint,
+            count=8,
+            language=self.language,
+            error_notifier=self.error_notifier,
+        )
+        self.preview_window.previewsSelected.connect(self._store_previews)
+        self.preview_window.show()
+
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
         style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
@@ -198,6 +252,23 @@ class AiGeneratorTab(QWidget):
             return
 
         width, height = self._get_selected_dimensions()
+
+        if self.previewed_images:
+            self.abort_event = threading.Event()
+            self._set_generation_controls(enabled=False)
+
+            self.worker_thread = QThread()
+            self.worker = FinalizationWorker(self.previewed_images, self.abort_event)
+            self.worker.moveToThread(self.worker_thread)
+            self.worker_thread.started.connect(self.worker.run)
+            self.worker.finished.connect(self.generation_finished)
+            self.worker.failed.connect(self.generation_failed)
+            self.worker.finished.connect(self.worker_thread.quit)
+            self.worker.failed.connect(self.worker_thread.quit)
+            self.worker_thread.finished.connect(self.worker.deleteLater)
+            self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+            self.worker_thread.start()
+            return
 
         self.abort_event = threading.Event()
         self._set_generation_controls(enabled=False)
@@ -246,6 +317,16 @@ class AiGeneratorTab(QWidget):
         self._set_generation_controls(enabled=True)
         self._reset_worker_state()
 
+    def _store_previews(self, previews: list[dict]):
+        self.previewed_images = previews or []
+        if self.previewed_images:
+            first_path = self.previewed_images[0].get("path")
+            if first_path and os.path.isfile(first_path):
+                pixmap = QPixmap(first_path)
+                self.preview_label.setPixmap(
+                    pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                )
+
     def generation_failed(self, message: str):
         self._emit_error(
             self.strings.get("fail_title", ""),
@@ -262,6 +343,7 @@ class AiGeneratorTab(QWidget):
 
     def _set_generation_controls(self, enabled: bool):
         self.generate_button.setEnabled(enabled)
+        self.preview_button.setEnabled(enabled)
         self.csv_button.setEnabled(enabled)
         self.abort_button.setEnabled(not enabled)
 
