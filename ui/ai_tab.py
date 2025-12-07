@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QTextEdit,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -222,6 +223,22 @@ class AiGeneratorTab(QWidget):
         model = self.model_combo.currentText()
         width, height = self._get_selected_dimensions()
 
+        tab_widget = self._get_tab_widget()
+        if not tab_widget:
+            self._emit_error(
+                self.strings.get("fail_title", ""),
+                self.strings.get("preview_tab_error", ""),
+                level="error",
+            )
+            return
+
+        if self.preview_window:
+            existing_index = tab_widget.indexOf(self.preview_window)
+            if existing_index != -1:
+                tab_widget.removeTab(existing_index)
+            self.preview_window.deleteLater()
+            self.preview_window = None
+
         self.preview_window = PreviewGenWindow(
             prompt,
             self.csv_path,
@@ -232,9 +249,20 @@ class AiGeneratorTab(QWidget):
             count=8,
             language=self.language,
             error_notifier=self.error_notifier,
+            parent=tab_widget,
         )
         self.preview_window.previewsSelected.connect(self._store_previews)
-        self.preview_window.show()
+        tab_title = get_section(self.language, "tabs").get("preview_gen", "Preview")
+        tab_widget.addTab(self.preview_window, tab_title)
+        tab_widget.setCurrentWidget(self.preview_window)
+
+    def _get_tab_widget(self) -> QTabWidget | None:
+        current = self.parent()
+        while current:
+            if isinstance(current, QTabWidget):
+                return current
+            current = current.parent()
+        return None
 
     def generate_ai(self):
         prompt = self.prompt_edit.toPlainText()
@@ -326,6 +354,7 @@ class AiGeneratorTab(QWidget):
                 self.preview_label.setPixmap(
                     pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 )
+        self.preview_window = None
 
     def generation_failed(self, message: str):
         self._emit_error(
