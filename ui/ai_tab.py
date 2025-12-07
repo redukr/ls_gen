@@ -225,6 +225,17 @@ class AiGeneratorTab(QWidget):
         model = self.model_combo.currentText()
         width, height = self._get_selected_dimensions()
 
+        try:
+            desired_count = int(self.count_edit.text())
+        except Exception:
+            self._emit_error(
+                self.strings.get("count_error_title", ""),
+                self.strings.get("count_error", ""),
+                level="warning",
+            )
+            return
+        desired_count = max(desired_count, 1)
+
         tab_widget = self._get_tab_widget()
         if not tab_widget:
             self._emit_error(
@@ -234,6 +245,13 @@ class AiGeneratorTab(QWidget):
             )
             return
 
+        if self.preview_window and self.preview_window.count != desired_count:
+            existing_index = tab_widget.indexOf(self.preview_window)
+            if existing_index != -1:
+                tab_widget.removeTab(existing_index)
+            self.preview_window.deleteLater()
+            self.preview_window = None
+
         if not self.preview_window:
             self.preview_window = PreviewGenWindow(
                 prompt,
@@ -242,7 +260,7 @@ class AiGeneratorTab(QWidget):
                 width=width,
                 height=height,
                 style_hint=style_hint,
-                count=8,
+                count=desired_count,
                 language=self.language,
                 error_notifier=self.error_notifier,
                 parent=tab_widget,
