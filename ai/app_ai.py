@@ -113,22 +113,39 @@ def generate_ai_images(
             row_params = params
         else:
             row_params = {}
-            
+
+        # Work on a copy so we don't mutate cached CSV/JSON rows across calls.
+        if isinstance(row_params, dict):
+            row_params = dict(row_params)
+        else:
+            row_params = {}
+
         # -------------------------------------------------
         # Переклад CSV-полів, якщо обрана мова ≠ українська
         # -------------------------------------------------
         if language != "Українська" and isinstance(row_params, dict):
+            # Prefer explicit English value if it exists to avoid over-translating.
+            if row_params.get("name_en"):
+                row_params.setdefault("name", row_params["name_en"])
+
             translator = OfflineTranslator()
             for k, v in row_params.items():
                 if isinstance(v, str):
+                    if k.endswith("_en"):
+                        continue
                     try:
                         row_params[k] = translator.translate(v)
                     except Exception:
                         pass
 
-        
-        pr = _personalize_prompt(prompt, row_params)
-        pr = _enrich_prompt_with_params(pr, row_params, style_hint=style_hint)
+        chosen_prompt = (
+            row_params.get("prompt")
+            or row_params.get("promt")
+            or prompt
+        )
+        pr = _personalize_prompt(chosen_prompt, row_params)
+        effective_style = row_params.get("style_hint") or style_hint
+        pr = _enrich_prompt_with_params(pr, row_params, style_hint=effective_style)
 
         img = generate_image(
             pr,
@@ -176,18 +193,35 @@ def generate_previews(
         else:
             row_params = {}
 
+        if isinstance(row_params, dict):
+            row_params = dict(row_params)
+        else:
+            row_params = {}
+
         if language != "Українська" and isinstance(row_params, dict):
+            if row_params.get("name_en"):
+                row_params.setdefault("name", row_params["name_en"])
+
             translator = OfflineTranslator()
             for k, v in row_params.items():
                 if isinstance(v, str):
+                    if k.endswith("_en"):
+                        continue
                     try:
                         row_params[k] = translator.translate(v)
                     except Exception:
                         pass
 
-        enriched_prompt = _personalize_prompt(prompt, row_params)
+        chosen_prompt = (
+            row_params.get("prompt")
+            or row_params.get("promt")
+            or prompt
+        )
+        enriched_prompt = _personalize_prompt(chosen_prompt, row_params)
         enriched_prompt = _enrich_prompt_with_params(
-            enriched_prompt, row_params, style_hint=style_hint
+            enriched_prompt,
+            row_params,
+            style_hint=row_params.get("style_hint") or style_hint,
         )
 
         seed = torch.randint(0, 2**32 - 1, (1,)).item()
