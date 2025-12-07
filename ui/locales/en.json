@@ -12,7 +12,8 @@
         "render": "Card Renderer",
         "export": "Export",
         "data_editor": "Data Editor",
-        "error_log": "Error Log"
+        "error_log": "Error Log",
+        "preview_gen": "Preview Gen"
     },
     "card_type": {
         "unit": "Unit",
@@ -69,6 +70,7 @@
         "done_title": "Done",
         "done_message": "Generated {count} images",
         "fail_title": "Generation failed",
+        "preview_tab_error": "Preview tab is not available",
         "dimension_labels": [
             "448 × 696 px (200 DPI)",
             "552 × 864 px (250 DPI)",

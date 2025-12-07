@@ -12,7 +12,8 @@
         "render": "Рендер карток",
         "export": "Експорт",
         "data_editor": "Редактор даних",
-        "error_log": "Журнал помилок"
+        "error_log": "Журнал помилок",
+        "preview_gen": "Генерація прев’ю"
     },
     "card_type": {
         "unit": "Юніт",
@@ -69,6 +70,7 @@
         "done_title": "Готово",
         "done_message": "Згенеровано {count} зображень",
         "fail_title": "Помилка генерації",
+        "preview_tab_error": "Вкладка прев’ю недоступна",
         "dimension_labels": [
             "448 × 696 пікс (200 DPI)",
             "552 × 864 пікс (250 DPI)",
