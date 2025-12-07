@@ -1,6 +1,5 @@
 import requests
 
-
 class OfflineTranslator:
     def __init__(self, api_url="https://libretranslate.de/translate"):
         self.api_url = api_url
@@ -21,7 +20,15 @@ class OfflineTranslator:
                 timeout=10
             )
 
-            data = response.json()
+            # Перевірка статусу
+            if response.status_code != 200:
+                return f"[ERROR] API недоступне: {response.status_code} {response.text}"
+
+            # Спроба розпарсити JSON
+            try:
+                data = response.json()
+            except Exception:
+                return f"[ERROR] Некоректна відповідь API (не JSON): {response.text[:200]}"
 
             if "translatedText" not in data:
                 return f"[ERROR] Некоректна відповідь API: {data}"
