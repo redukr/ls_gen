@@ -4,7 +4,7 @@ class OfflineTranslator:
     def __init__(self):
         self.api_url = "https://api.mymemory.translated.net/get"
 
-    def translate(self, text: str) -> str:
+    def translate(self, text: str, langpair: str = "uk|en") -> str:
         if not text.strip():
             return ""
 
@@ -13,7 +13,7 @@ class OfflineTranslator:
                 self.api_url,
                 params={
                     "q": text,
-                    "langpair": "uk|en"
+                    "langpair": langpair
                 },
                 timeout=10
             )
