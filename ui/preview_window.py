@@ -327,6 +327,20 @@ class PreviewGenWindow(QWidget):
         target_indices = [idx for idx, item in enumerate(self.items) if not item.checkbox.isChecked()]
         self._start_generation(len(target_indices), target_indices)
 
+    def show_existing_previews(self, images: list[str]):
+        """Display already-generated images inside the preview grid."""
+
+        images = images or []
+        max_items = len(self.items)
+        self.preview_data = []
+
+        for idx in range(max_items):
+            path = images[idx] if idx < len(images) else None
+            preview = {"path": path} if path else None
+            self.preview_data.append(preview)
+            self.items[idx].set_preview(preview)
+            self.items[idx].checkbox.setChecked(False)
+
     def apply_selection(self):
         selected = [data for data, item in zip(self.preview_data, self.items) if item.checkbox.isChecked() and data]
         if not selected:

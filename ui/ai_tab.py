@@ -435,6 +435,7 @@ class AiGeneratorTab(QWidget):
         if images:
             pixmap = QPixmap(images[0])
             self.preview_label.setPixmap(pixmap.scaled(256, 256, Qt.KeepAspectRatio))
+            self._sync_preview_tab(images)
 
         if self.abort_event and self.abort_event.is_set():
             self._emit_error(
@@ -470,6 +471,23 @@ class AiGeneratorTab(QWidget):
         )
         self._set_generation_controls(enabled=True)
         self._reset_worker_state()
+
+    def _sync_preview_tab(self, images: list[str]):
+        if not images:
+            return
+
+        tab_widget = self._get_tab_widget()
+        if not tab_widget:
+            return
+
+        if not self.preview_window:
+            self.open_preview_window(auto_start=False)
+
+        if self.preview_window:
+            self.preview_window.show_existing_previews(images)
+            index = tab_widget.indexOf(self.preview_window)
+            if index != -1:
+                tab_widget.setCurrentIndex(index)
 
     def abort_generation(self):
         if self.abort_event:
