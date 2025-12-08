@@ -1,16 +1,17 @@
 {
-  "language": "en",
-  "export_dir": "",
+  "language": "uk",
+  "export_dir": "D:/PRJ/ls_gen/export/95",
   "settings_dir": "D:/PRJ/ls_gen/import",
   "ai_generator": {
-    "prompt": "{name_en}, Ukrainian Air Assault soldier in a dynamic battlefield scene. Full-body, realistic proportions, tactical gear, motion, debris, smoke, environment depth. \nNo interface, no HUD, no UI panels, no grids, no icons, no borders, no text, no card layout.\n",
-    "style_hint": ", minimal texture, military tone\n",
-    "count": "4",
+    "prompt": "{name_en}, Ukrainian Airborn soldier in a dynamic battlefield scene. Full-body, realistic proportions, tactical gear, motion, debris, smoke, environment depth. \n\n",
+    "negative_prompt": "low quality, jpeg artifacts, blurry, distorted, watermark, text, logo, signature, extra limbs, extra fingers, mutation, disfigured, poorly drawn hands, malformed anatomy, long neck, duplicate body, No interface, no HUD, no UI panels, no grids, no icons, no borders, no text, no card layout.",
+    "style_hint": "realism, minimal texture, military tone\n",
+    "count": "60",
     "dimensions": [
       448,
       696
     ],
-    "model": "DreamShaperXL",
+    "model": "JuggernautXL",
     "csv_path": "D:/PRJ/ls_gen/import/deck_95_tr.json"
   }
 }
