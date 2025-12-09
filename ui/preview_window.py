@@ -121,6 +121,7 @@ class PreviewGeneratorWorker(QObject):
         height: int,
         style_hint: str,
         negative_prompt: str,
+        loras: list[str] | None,
         count: int,
         language: str,
         row_indices: list[int] | None = None,
@@ -133,6 +134,7 @@ class PreviewGeneratorWorker(QObject):
         self.height = height
         self.style_hint = style_hint
         self.negative_prompt = negative_prompt
+        self.loras = loras
         self.count = count
         self.language = language
         self.row_indices = row_indices
@@ -148,6 +150,7 @@ class PreviewGeneratorWorker(QObject):
                 height=self.height,
                 style_hint=self.style_hint,
                 negative_prompt=self.negative_prompt,
+                loras=self.loras,
                 language=self.language,
                 row_indices=self.row_indices,
             )
@@ -169,6 +172,7 @@ class PreviewGenWindow(QWidget):
         height: int,
         style_hint: str,
         negative_prompt: str,
+        loras: list[str] | None,
         count: int = 8,
         language: str = "en",
         parent=None,
@@ -183,6 +187,7 @@ class PreviewGenWindow(QWidget):
         self.height = height
         self.style_hint = style_hint
         self.negative_prompt = negative_prompt
+        self.loras = loras or []
         self.count = count
         self.language = ensure_language(language)
         self.error_notifier = error_notifier
@@ -201,6 +206,7 @@ class PreviewGenWindow(QWidget):
             height,
             style_hint,
             negative_prompt=negative_prompt,
+            loras=self.loras,
             language=self.language,
             auto_start=auto_start,
         )
@@ -264,6 +270,7 @@ class PreviewGenWindow(QWidget):
         height: int,
         style_hint: str,
         negative_prompt: str,
+        loras: list[str] | None,
         language: str,
         auto_start: bool = True,
     ):
@@ -274,6 +281,7 @@ class PreviewGenWindow(QWidget):
         self.height = height
         self.style_hint = style_hint
         self.negative_prompt = negative_prompt
+        self.loras = loras or []
         self.language = ensure_language(language)
         self.preview_data = [None] * self.count
         for item in self.items:
@@ -295,6 +303,7 @@ class PreviewGenWindow(QWidget):
             self.height,
             self.style_hint,
             self.negative_prompt,
+            self.loras,
             count,
             self.language,
             row_indices=target_indices,

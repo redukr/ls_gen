@@ -72,6 +72,8 @@
         "done_message": "Generated {count} images",
         "fail_title": "Generation failed",
         "preview_tab_error": "Preview tab is not available",
+        "lora_label": "LoRA add-ons:",
+        "no_loras": "No LoRA files found in ai/models/lora",
         "dimension_labels": [
             "500 × 700 px (2.5 × 3.5 preview)",
             "448 × 696 px (200 DPI)",

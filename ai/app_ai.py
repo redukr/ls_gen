@@ -89,6 +89,7 @@ def generate_ai_images(
     style_hint: str = STYLE_HINT,
     language: str = "en",
     negative_prompt: str | None = None,
+    loras: list[str] | None = None,
 ) -> List[str]:
     """
     Generate a list of images with optional CSV-driven personalization.
@@ -135,6 +136,7 @@ def generate_ai_images(
             width=width,
             height=height,
             negative_prompt=negative_prompt,
+            loras=loras,
         )
         path = f"export/ai_{i+1}.png"
         img.save(path)
@@ -156,6 +158,7 @@ def generate_previews(
     steps: int = 7,
     row_indices: List[int] | None = None,
     negative_prompt: str | None = None,
+    loras: list[str] | None = None,
 ) -> List[dict]:
     """Generate lightweight preview images with preserved seeds.
 
@@ -203,6 +206,7 @@ def generate_previews(
             steps=steps,
             seed=seed,
             negative_prompt=negative_prompt,
+            loras=loras,
         )
         os.makedirs("export", exist_ok=True)
         path = f"export/preview_{i+1}.png"
@@ -218,6 +222,7 @@ def generate_previews(
                 "height": height,
                 "style_hint": style_hint,
                 "negative_prompt": negative_prompt,
+                "loras": loras or [],
                 "params": row_params,
             }
         )
@@ -242,6 +247,7 @@ def finalize_preview(preview: dict, *, steps: int = 30) -> str:
         steps=steps,
         seed=seed,
         negative_prompt=preview.get("negative_prompt"),
+        loras=preview.get("loras"),
     )
 
     os.makedirs("export", exist_ok=True)

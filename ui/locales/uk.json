@@ -72,6 +72,8 @@
         "done_message": "Згенеровано {count} зображень",
         "fail_title": "Помилка генерації",
         "preview_tab_error": "Вкладка прев’ю недоступна",
+        "lora_label": "LoRA-доповнення:",
+        "no_loras": "Файли LoRA у ai/models/lora не знайдено",
         "dimension_labels": [
             "500 × 700 пікс (2.5 × 3.5 прев’ю)",
             "448 × 696 пікс (200 DPI)",
