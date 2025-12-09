@@ -1,0 +1,61 @@
+name,type,cost,cost_type,atk,def,stb,init,rng,move,name_en
+Десантно-штурмовик,unit,1,BF,2,1,3,3,1,1,Airborne attack aircraft
+Кулеметник,unit,1,BF,3,1,3,2,2,1,MG
+Гранатометник,unit,1,BF,3,0,2,2,2,1,grenade launcher operator
+Стрілець-десантник,unit,1,BF,1,1,2,3,1,1,Sagittarius paratrooper
+Розвідник,unit,1,BF,2,1,2,4,2,2,Scout
+Снайпер мобільної групи,unit,1,BF,3,0,2,3,4,1,Mobile group sniper
+Група протидії БпЛА,unit,1,LOG,2,1,3,3,3,1,UAV Counteraction Group
+Мобільна група на пікапі,unit,1,LOG,2,1,3,4,2,2,Mobile group on a pickup truck
+Екіпаж БМП,unit,2,LOG,3,2,4,2,2,1,Infantry fighting vehicle crew
+Екіпаж БТР-3,unit,2,LOG,3,2,4,2,2,1,Crew of BTR-3
+Медик десантний,unit,1,BF,0,1,2,3,1,1,Amphibious Medic
+Мінометник 120 мм,unit,1,LOG,3,0,2,2,4,0,Mortar 120 mm
+Рейдовий прорив,tactic,1,CI,,,,,,Raid Breakthrough
+Глибокий обхід,tactic,1,CI,,,,,,Deep traversal
+Мобільний маневр,tactic,1,CI,,,,,,Mobile maneuver
+Десантна швидкість,tactic,1,CI,,,,,,Amphibious Velocity
+Мінометна підтримка,tactic,1,CI,,,,,,Mortar support
+Перехресний вогонь,tactic,1,CI,,,,,,Cross Fire
+Штурмовий тиск,tactic,1,CI,,,,,,Assault pressure
+FPV-атака,tactic,1,CI,,,,,,FPV attack
+Робота мобільних груп,tactic,1,CI,,,,,,Work of mobile groups
+Полювання на бронетехніку,tactic,1,CI,,,,,,Hunting for armored vehicles
+Маневр оборони,tactic,1,CI,,,,,,Defense Maneuver
+Контратака малими силами,tactic,1,CI,,,,,,Small force counterattack
+Сила, Відвага, Честь!,thematic,1,CI,,,,,,Strength, Courage, Honor!
+Рейдовий дух,thematic,1,CI,,,,,,Raid Spirit
+Поліська міць,thematic,1,CI,,,,,,Polissia Power
+Непохитність десанту,thematic,1,CI,,,,,,Invincibility of the landing
+Десантна відвага,thematic,1,CI,,,,,,Airborne courage
+Мобільний удар,thematic,1,CI,,,,,,Mobile Strike
+Блискавичний прорив,thematic,1,CI,,,,,,Lightning-fast breakthrough
+Сила єдності,thematic,1,CI,,,,,,The Power of Unity
+Нічний натиск,thematic,1,CI,,,,,,Night pressure
+Стрибок крізь хаос,thematic,1,CI,,,,,,Jump through chaos
+Сталева воля,thematic,1,CI,,,,,,Steel Will
+Крилатий удар,thematic,1,CI,,,,,,Winged Strike
+Парашут С-5,equipment,1,LOG,,,,,,Parachute C-5
+Десантний комплект,equipment,1,LOG,,,,,,Amphibious Kit
+Розвантажувальна система «Дрейк»,equipment,1,LOG,,,,,,Drake Unloading System
+ПНБ,equipment,1,LOG,,,,,,PONV
+Маруновий берет,equipment,1,CI,,,,,,Maroon Beret
+ПКМ,equipment,1,LOG,,,,,,AM
+FN Minimi,equipment,1,LOG,,,,,,FN Minimi
+NLAW,equipment,2,LOG,,,,,,NLAW
+FPV-дрон,equipment,1,LOG,,,,,,FPV drone
+Трофейна техніка,equipment,0,LOG,,,,,,Trophy equipment
+Десантна аптечка,equipment,1,LOG,,,,,,Airborne first aid kit
+Підвісна система швидкого скидання,equipment,1,LOG,,,,,,Suspended quick reset system
+Перехід у наступ,event,0,CI,,,,,,Go on the offensive
+Атака з повітря,event,1,CI,,,,,,Air raid
+Артилерійська підтримка,event,1,CI,,,,,,Artillery support
+Негода,event,0,CI,,,,,,Bad Weather
+Масований штурм,event,1,CI,,,,,,Massive assault
+Підкріплення,event,0,BF,,,,,,Underpinning
+Зміна сектора,event,0,CI,,,,,,Sector change
+Узгодження вогню,event,1,CI,,,,,,Reconciliation of fire
+Перекидання резервів,event,1,LOG,,,,,,Transfer of reserves
+Зміна осі атаки,event,0,CI,,,,,,Changing the attack axis
+Розрив комунікацій,event,0,CI,,,,,,Communication gap
+Перевага в повітрі,event,1,CI,,,,,,Air superiority

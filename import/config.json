@@ -12,6 +12,10 @@
       696
     ],
     "model": "SD 1.5",
-    "csv_path": "D:/PRJ/ls_gen/import/deck_95_tr.json"
+    "csv_path": "D:/PRJ/ls_gen/import/deck_95_tr.json",
+    "loras": [
+      "TQ6BYTYF97MY2DK566GCGEMAK0",
+      "realisticComicBook_v10"
+    ]
   }
 }
