@@ -1,10 +1,10 @@
+import os
 import torch
 from diffusers import (
+    DPMSolverMultistepScheduler,
     StableDiffusionPipeline,
     StableDiffusionXLPipeline,
-    DPMSolverMultistepScheduler
 )
-import os
 
 pipe = None
 current_model_path = None
@@ -19,6 +19,8 @@ AVAILABLE_MODELS = {
     "DreamShaperXL": ("sdxl", "ai/models/dreamshaperxl"),
     "JuggernautXL": ("sdxl", "ai/models/juggernautxl"),
 }
+
+LORA_DIR = os.path.join("ai", "models", "lora")
 
 # ============================================================
 #                 LOAD MODEL (RTX 3060 OPTIMIZED)
@@ -121,6 +123,59 @@ def load_model(model_type, model_path):
     return pipe
 
 
+def _discover_lora_files():
+    if not os.path.isdir(LORA_DIR):
+        return []
+
+    loras = []
+    for entry in os.scandir(LORA_DIR):
+        if not entry.is_file():
+            continue
+        if entry.name.lower().endswith((".safetensors", ".ckpt", ".pt")):
+            name = os.path.splitext(entry.name)[0]
+            loras.append((name, entry.path))
+    return sorted(loras)
+
+
+def get_available_loras():
+    """Return a mapping of available LoRA names to their file paths."""
+
+    return {name: path for name, path in _discover_lora_files()}
+
+
+def _apply_loras(selected_loras: list[str]):
+    global pipe
+
+    if pipe is None:
+        return
+
+    if hasattr(pipe, "disable_lora"):
+        pipe.disable_lora()
+    elif hasattr(pipe, "unload_lora_weights"):
+        try:
+            pipe.unload_lora_weights()
+        except Exception:
+            pass
+
+    available = get_available_loras()
+    adapter_names: list[str] = []
+
+    for idx, name in enumerate(selected_loras or []):
+        path = available.get(name)
+        if not path:
+            continue
+        adapter_name = f"lora_{idx}_{name}"
+        pipe.load_lora_weights(path, adapter_name=adapter_name)
+        adapter_names.append(adapter_name)
+
+    if adapter_names:
+        if hasattr(pipe, "set_adapters"):
+            pipe.set_adapters(adapter_names)
+        elif hasattr(pipe, "set_adapter"):
+            pipe.set_adapter(adapter_names[-1])
+
+
+
 
 # ============================================================
 #                     GENERATE IMAGE
@@ -140,6 +195,7 @@ def generate_image(
     steps=25,
     seed=None,
     negative_prompt: str | None = None,
+    loras: list[str] | None = None,
 ):
     """
     Генерує одне зображення, використовуючи модель з AVAILABLE_MODELS.
@@ -151,6 +207,7 @@ def generate_image(
     model_type, model_path = AVAILABLE_MODELS[model_name]
 
     pipe = load_model(model_type, model_path)
+    _apply_loras(loras or [])
 
     # Seed
     if seed is None:

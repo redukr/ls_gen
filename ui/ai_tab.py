@@ -4,6 +4,7 @@ import threading
 from PySide6.QtCore import QObject, QThread, QTimer, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QHBoxLayout,
     QLabel,
@@ -16,7 +17,11 @@ from PySide6.QtWidgets import (
 )
 
 from ai.app_ai import STYLE_HINT, finalize_preview, generate_ai_images
-from ai.tools.generator import AVAILABLE_MODELS, DEFAULT_NEGATIVE_PROMPT
+from ai.tools.generator import (
+    AVAILABLE_MODELS,
+    DEFAULT_NEGATIVE_PROMPT,
+    get_available_loras,
+)
 from ui.preview_window import PreviewGenWindow
 from ui.locales import ensure_language, format_message, get_section
 
@@ -35,6 +40,7 @@ class GenerationWorker(QObject):
         height: int,
         style_hint: str,
         negative_prompt: str,
+        loras: list[str] | None,
         abort_event: threading.Event,
     ):
         super().__init__()
@@ -46,6 +52,7 @@ class GenerationWorker(QObject):
         self.height = height
         self.style_hint = style_hint
         self.negative_prompt = negative_prompt
+        self.loras = loras or []
         self.abort_event = abort_event
 
     def run(self):
@@ -60,6 +67,7 @@ class GenerationWorker(QObject):
                 self.abort_event.is_set,
                 style_hint=self.style_hint,
                 negative_prompt=self.negative_prompt,
+                loras=self.loras,
             )
             self.finished.emit(images)
         except Exception as e:
@@ -159,6 +167,16 @@ class AiGeneratorTab(QWidget):
         self.model_combo.addItems(list(AVAILABLE_MODELS.keys()))
         layout.addWidget(self.model_combo)
 
+        self.lora_label = QLabel()
+        layout.addWidget(self.lora_label)
+        self.lora_container = QWidget()
+        self.lora_layout = QVBoxLayout()
+        self.lora_layout.setContentsMargins(0, 0, 0, 0)
+        self.lora_container.setLayout(self.lora_layout)
+        layout.addWidget(self.lora_container)
+        self.lora_checkboxes: list[QCheckBox] = []
+        self._populate_lora_checkboxes()
+
         # Generate buttons
         buttons_layout = QHBoxLayout()
         self.generate_button = QPushButton()
@@ -198,6 +216,7 @@ class AiGeneratorTab(QWidget):
             "dimensions": [width, height],
             "model": self.model_combo.currentText(),
             "csv_path": self.csv_path,
+            "loras": self._get_selected_loras(),
         }
 
     def apply_settings(self, settings: dict):
@@ -232,6 +251,12 @@ class AiGeneratorTab(QWidget):
         if model and model in [self.model_combo.itemText(i) for i in range(self.model_combo.count())]:
             self.model_combo.setCurrentText(model)
 
+        loras = settings.get("loras") or []
+        if isinstance(loras, (list, tuple)):
+            selected = set(str(l) for l in loras)
+            for checkbox in self.lora_checkboxes:
+                checkbox.setChecked(checkbox.text() in selected)
+
         csv_path = settings.get("csv_path")
         if csv_path:
             self.csv_path = str(csv_path)
@@ -255,6 +280,7 @@ class AiGeneratorTab(QWidget):
         self.count_label.setText(strings.get("count", ""))
         self.dimensions_label.setText(strings.get("dimensions", ""))
         self.model_label.setText(strings.get("model_label", strings.get("model", "")))
+        self.lora_label.setText(strings.get("lora_label", ""))
         self.generate_button.setText(strings.get("generate_button", ""))
         self.preview_button.setText(strings.get("generate_previews_button", ""))
         self.abort_button.setText(strings.get("abort_button", strings.get("abort", "")))
@@ -265,6 +291,7 @@ class AiGeneratorTab(QWidget):
         ):
             self.preview_label.setText(no_image)
         self._populate_dimensions(strings)
+        self._populate_lora_checkboxes(strings)
 
     def load_csv(self):
         start_dir = "config" if os.path.isdir("config") else ""
@@ -289,6 +316,7 @@ class AiGeneratorTab(QWidget):
         style_hint = self.style_hint_edit.toPlainText().strip() or STYLE_HINT
         negative_prompt = self.negative_prompt_edit.toPlainText().strip() or DEFAULT_NEGATIVE_PROMPT
         model = self.model_combo.currentText()
+        loras = self._get_selected_loras()
         width, height = self._get_selected_dimensions()
 
         try:
@@ -327,6 +355,7 @@ class AiGeneratorTab(QWidget):
                 height=height,
                 style_hint=style_hint,
                 negative_prompt=negative_prompt,
+                loras=loras,
                 count=desired_count,
                 language=self.language,
                 error_notifier=self.error_notifier,
@@ -343,6 +372,7 @@ class AiGeneratorTab(QWidget):
                 height,
                 style_hint,
                 negative_prompt=negative_prompt,
+                loras=loras,
                 language=self.language,
                 auto_start=auto_start,
             )
@@ -416,6 +446,7 @@ class AiGeneratorTab(QWidget):
             height,
             style_hint,
             negative_prompt,
+            loras,
             self.abort_event
         )
         self.worker.moveToThread(self.worker_thread)
@@ -541,6 +572,34 @@ class AiGeneratorTab(QWidget):
             return width, height
         width, height, _ = self.dimension_options[0]
         return width, height
+
+    def _populate_lora_checkboxes(self, strings: dict | None = None):
+        strings = strings or self.strings or {}
+        selected = set(self._get_selected_loras())
+
+        while self.lora_layout.count():
+            item = self.lora_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        self.lora_checkboxes = []
+        available_loras = get_available_loras()
+
+        if not available_loras:
+            placeholder = QLabel(strings.get("no_loras", ""))
+            placeholder.setObjectName("lora-placeholder")
+            self.lora_layout.addWidget(placeholder)
+            return
+
+        for name in sorted(available_loras.keys()):
+            checkbox = QCheckBox(name)
+            checkbox.setChecked(name in selected)
+            self.lora_layout.addWidget(checkbox)
+            self.lora_checkboxes.append(checkbox)
+
+    def _get_selected_loras(self) -> list[str]:
+        return [cb.text() for cb in self.lora_checkboxes if cb.isChecked()]
 
 
 # Late imports to avoid circular dependencies in type checkers
