@@ -2,7 +2,6 @@ import os
 from typing import Callable, List
 
 import torch
-from renderer.widgets.translator import OfflineTranslator
 
 from ai.tools.csv_loader import load_params
 from ai.tools.generator import generate_image
@@ -88,7 +87,7 @@ def generate_ai_images(
     is_aborted: Callable[[], bool] | None = None,
     *,
     style_hint: str = STYLE_HINT,
-    language: str = "Українська",   # ← ДОДАТИ ЦЕ
+    language: str = "en",
     negative_prompt: str | None = None,
 ) -> List[str]:
     """
@@ -120,24 +119,6 @@ def generate_ai_images(
             row_params = dict(row_params)
         else:
             row_params = {}
-
-        # -------------------------------------------------
-        # Переклад CSV-полів, якщо обрана мова ≠ українська
-        # -------------------------------------------------
-        if language != "Українська" and isinstance(row_params, dict):
-            # Prefer explicit English value if it exists to avoid over-translating.
-            if row_params.get("name_en"):
-                row_params.setdefault("name", row_params["name_en"])
-
-            translator = OfflineTranslator()
-            for k, v in row_params.items():
-                if isinstance(v, str):
-                    if k.endswith("_en"):
-                        continue
-                    try:
-                        row_params[k] = translator.translate(v)
-                    except Exception:
-                        pass
 
         chosen_prompt = (
             row_params.get("prompt")
@@ -171,7 +152,7 @@ def generate_previews(
     width: int,
     height: int,
     style_hint: str = STYLE_HINT,
-    language: str = "Українська",
+    language: str = "en",
     steps: int = 7,
     row_indices: List[int] | None = None,
     negative_prompt: str | None = None,
@@ -200,20 +181,6 @@ def generate_previews(
             row_params = dict(row_params)
         else:
             row_params = {}
-
-        if language != "Українська" and isinstance(row_params, dict):
-            if row_params.get("name_en"):
-                row_params.setdefault("name", row_params["name_en"])
-
-            translator = OfflineTranslator()
-            for k, v in row_params.items():
-                if isinstance(v, str):
-                    if k.endswith("_en"):
-                        continue
-                    try:
-                        row_params[k] = translator.translate(v)
-                    except Exception:
-                        pass
 
         chosen_prompt = (
             row_params.get("prompt")
