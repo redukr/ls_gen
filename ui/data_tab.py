@@ -301,7 +301,7 @@ class DataEditorWidget(QWidget):
                 target_item.setData(Qt.UserRole, True)
             return
         try:
-            translation = self.translator.translate(current_name)
+            translation = self.translator.translate_name(current_name)
         except Exception as exc:
             if not self.translation_error_shown:
                 self._emit_error(

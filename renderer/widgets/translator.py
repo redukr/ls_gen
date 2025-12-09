@@ -27,3 +27,7 @@ class OfflineTranslator:
 
         except Exception as e:
             raise RuntimeError(f"Переклад недоступний: {e}") from e
+
+    def translate_name(self, name: str) -> str:
+        """Перекладає назву з української на англійську"""
+        return self.translate(name, "uk|en")
