@@ -18,6 +18,7 @@ AVAILABLE_MODELS = {
     "SDXL Base 1.0": ("sdxl", "ai/models/stable-diffusion-xl-base-1.0"),
     "DreamShaperXL": ("sdxl", "ai/models/dreamshaperxl"),
     "JuggernautXL": ("sdxl", "ai/models/juggernautxl"),
+    "SD 1.5": ("sdxl", "ai/models/stable-diffusion-v1-5")
 }
 
 # ============================================================

@@ -4,14 +4,14 @@
   "settings_dir": "D:/PRJ/ls_gen/import",
   "ai_generator": {
     "prompt": "{name_en}, Ukrainian Airborn soldier in a dynamic battlefield scene. Full-body, realistic proportions, tactical gear, motion, debris, smoke, environment depth. \n\n",
-    "negative_prompt": "low quality, jpeg artifacts, blurry, distorted, watermark, text, logo, signature, extra limbs, extra fingers, mutation, disfigured, poorly drawn hands, malformed anatomy, long neck, duplicate body, No interface, no HUD, no UI panels, no grids, no icons, no borders, no text, no card layout.",
+    "negative_prompt": "(low quality, worst quality, jpeg artifacts, blurry, distorted, watermark, text, logo, signature,\nextra limbs, extra fingers, mutation, disfigured, poorly drawn hands, malformed anatomy, bad proportions,\nlong neck, duplicate body, deformed, bad anatomy,\nno interface, no HUD, no UI panels, no grids, no icons, no borders, no card layout)",
     "style_hint": "realism, minimal texture, military tone\n",
-    "count": "60",
+    "count": "4",
     "dimensions": [
       448,
       696
     ],
-    "model": "JuggernautXL",
+    "model": "SD 1.5",
     "csv_path": "D:/PRJ/ls_gen/import/deck_95_tr.json"
   }
 }
