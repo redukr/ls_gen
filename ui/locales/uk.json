@@ -159,6 +159,11 @@
         }
     },
     "render_tab": {
+        "import_psd": "Імпортувати PSD",
+        "import_psd_title": "Відкрити файл PSD",
+        "import_psd_failed": "Не вдалося імпортувати PSD: {error}",
+        "import_psd_done_title": "PSD імпортовано",
+        "import_psd_done": "Плоске зображення збережено до {path}. Витягнуто {layers} видимих шарів для редагування.",
         "apply_ai": "Додати AI-зображення",
         "render_card": "Відрендерити картку",
         "no_images_title": "Немає зображень",

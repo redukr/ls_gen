@@ -1,7 +1,10 @@
 import os
+import tempfile
+from pathlib import Path
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QFileDialog,
     QHBoxLayout,
     QPushButton,
     QVBoxLayout,
@@ -9,8 +12,9 @@ from PySide6.QtWidgets import (
 )
 
 from renderer.core.json_loader import load_template
-from renderer.core.renderer import CardRenderer
 from renderer.core.paths import ABSOLUTE_PATH
+from renderer.core.psd_importer import PsdImporter
+from renderer.core.renderer import CardRenderer
 from renderer.widgets.drag_canvas import DragCanvas
 from renderer.widgets.property_panel import PropertyPanel
 from ui.locales import ensure_language, format_message, get_section
@@ -49,6 +53,11 @@ class RenderTab(QWidget):
         layout_path = ABSOLUTE_PATH("templates/template.json")
         self.template = load_template(layout_path)
 
+        # Button: import PSD layout
+        self.import_psd_button = QPushButton()
+        self.import_psd_button.clicked.connect(self.import_psd)
+        right.addWidget(self.import_psd_button)
+
         # Button: load AI image into card preview
         self.apply_ai_button = QPushButton()
         self.apply_ai_button.clicked.connect(self.apply_ai_to_card)
@@ -63,6 +72,47 @@ class RenderTab(QWidget):
         self.setLayout(layout)
 
         self.set_language(self.language)
+
+    def import_psd(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            self.strings.get("import_psd_title", ""),
+            "",
+            "PSD files (*.psd)",
+        )
+        if not path:
+            return
+
+        try:
+            importer = PsdImporter(path)
+            result = importer.load()
+            cache_dir = Path(tempfile.gettempdir()) / "ls_gen" / "psd"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            composite_path = cache_dir / f"{Path(path).stem}.png"
+            result.save_composite(composite_path)
+            layers_dir = cache_dir / f"{Path(path).stem}_layers"
+            exported_layers = result.export_layers(layers_dir)
+        except Exception as exc:
+            self._emit_error(
+                self.strings.get("error_title", ""),
+                format_message(self.strings, "import_psd_failed", error=exc),
+                level="error",
+            )
+            return
+
+        self.scene.set_art_pixmap(str(composite_path))
+        self.current_art = str(composite_path)
+        self._emit_error(
+            self.strings.get("import_psd_done_title", ""),
+            format_message(
+                self.strings,
+                "import_psd_done",
+                path=composite_path,
+                layers=len(exported_layers),
+            ),
+            level="info",
+        )
 
     def apply_ai_to_card(self):
         generated_images = self.get_generated_images()
@@ -123,6 +173,7 @@ class RenderTab(QWidget):
         self.language = language
         strings = get_section(language, "render_tab")
         self.strings = strings
+        self.import_psd_button.setText(strings.get("import_psd", "Import PSD"))
         self.apply_ai_button.setText(strings.get("apply_ai", ""))
         self.render_button.setText(strings.get("render_card", ""))
 

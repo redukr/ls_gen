@@ -159,6 +159,11 @@
         }
     },
     "render_tab": {
+        "import_psd": "Import PSD",
+        "import_psd_title": "Open PSD file",
+        "import_psd_failed": "Failed to import PSD: {error}",
+        "import_psd_done_title": "PSD imported",
+        "import_psd_done": "Flattened image saved to {path}. Extracted {layers} visible layers for editing.",
         "apply_ai": "Apply AI Image",
         "render_card": "Render Card",
         "no_images_title": "No images",
